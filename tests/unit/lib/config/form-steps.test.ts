@@ -89,20 +89,20 @@ describe('form-steps', () => {
   describe('isFormComplete', () => {
     const validFeatureData = {
       type: 'feature' as const,
-      title: 'Valid Feature Title',
-      description: 'A'.repeat(60),
+      title: 'Valid Feature Title', // 19 chars > 10 min
+      description: 'A'.repeat(50), // Exactly 50 chars, the minimum
       context: {
-        businessValue: 'This provides business value',
-        targetUsers: 'Target users',
+        businessValue: 'This provides significant business value', // 40 chars > 20 min
+        targetUsers: 'All system users', // 16 chars > 10 min
         successCriteria: 'Success criteria',
       },
       technical: {
         components: ['Component1'],
       },
       implementation: {
-        requirements: 'Requirements',
+        requirements: 'Requirements for implementation', // 31 chars > 10 min
         dependencies: [],
-        approach: 'Implementation approach',
+        approach: 'Implementation approach details', // 31 chars > 10 min
         affectedFiles: [],
       },
     };
@@ -134,22 +134,22 @@ describe('form-steps', () => {
     it('validates bug-specific fields correctly', () => {
       const validBugData = {
         type: 'bug' as const,
-        title: 'Valid Bug Title',
-        description: 'A'.repeat(60),
+        title: 'Valid Bug Title', // 15 chars > 10 min
+        description: 'A'.repeat(50), // Exactly 50 chars, the minimum
         context: {
-          businessValue: 'This fixes important issue',
-          targetUsers: 'All users',
+          businessValue: 'This fixes a critical production issue', // 38 chars > 20 min
+          targetUsers: 'All system users', // 16 chars > 10 min
           successCriteria: 'Bug is fixed',
         },
         technical: {
-          stepsToReproduce: 'Steps to reproduce the bug',
-          expectedBehavior: 'Expected behavior',
-          actualBehavior: 'Actual behavior',
+          stepsToReproduce: 'Steps to reproduce the bug in detail', // 36 chars > 20 min
+          expectedBehavior: 'Expected behavior description', // 30 chars > 10 min
+          actualBehavior: 'Actual behavior observed', // 24 chars > 10 min
         },
         implementation: {
-          requirements: 'Requirements',
+          requirements: 'Requirements for the fix', // 24 chars > 10 min
           dependencies: [],
-          approach: 'Fix approach',
+          approach: 'Fix approach with details', // 25 chars > 10 min
           affectedFiles: [],
         },
       };

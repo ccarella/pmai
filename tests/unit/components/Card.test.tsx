@@ -15,7 +15,7 @@ describe('Card', () => {
   it('applies default styles', () => {
     const { container } = render(<Card>Content</Card>);
     const card = container.firstChild;
-    expect(card).toHaveClass('bg-white', 'rounded-lg', 'shadow', 'p-6');
+    expect(card).toHaveClass('bg-card-bg', 'rounded-lg', 'shadow-sm', 'p-6');
   });
 
   it('applies custom className', () => {
@@ -25,7 +25,7 @@ describe('Card', () => {
     const card = container.firstChild;
     expect(card).toHaveClass('custom-class');
     // Should still have default classes
-    expect(card).toHaveClass('bg-white', 'rounded-lg');
+    expect(card).toHaveClass('bg-card-bg', 'rounded-lg');
   });
 
   it('renders with title when provided', () => {
@@ -52,17 +52,15 @@ describe('Card', () => {
       <Card variant="bordered">Content</Card>
     );
     let card = container.firstChild;
-    expect(card).toHaveClass('border', 'border-gray-200');
-    expect(card).not.toHaveClass('shadow');
+    expect(card).toHaveClass('border-2', 'border-accent/30');
 
     rerender(<Card variant="elevated">Content</Card>);
     card = container.firstChild;
-    expect(card).toHaveClass('shadow-lg');
+    expect(card).toHaveClass('shadow-lg', 'shadow-accent/10');
 
     rerender(<Card variant="flat">Content</Card>);
     card = container.firstChild;
-    expect(card).not.toHaveClass('shadow');
-    expect(card).not.toHaveClass('border');
+    expect(card).toHaveClass('border', 'border-border/50');
   });
 
   it('renders with header actions when provided', () => {
@@ -108,7 +106,7 @@ describe('Card', () => {
     );
     
     const card = screen.getByText('Clickable card').parentElement;
-    expect(card).toHaveClass('cursor-pointer', 'hover:shadow-md');
+    expect(card).toHaveClass('cursor-pointer', 'hover:shadow-lg');
     
     card?.click();
     expect(handleClick).toHaveBeenCalledTimes(1);

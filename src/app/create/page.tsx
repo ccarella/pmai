@@ -34,38 +34,38 @@ export default function CreateIssuePage() {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-2">Create New Issue</h1>
-      <p className="text-gray-600 mb-8">
+    <div className="container mx-auto px-4 py-8 max-w-4xl min-h-screen">
+      <h1 className="text-3xl font-bold mb-2 text-foreground">Create New Issue</h1>
+      <p className="text-muted mb-8">
         Generate comprehensive GitHub issues optimized for AI-assisted development
       </p>
 
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl font-semibold mb-4">Select Issue Type</h2>
+          <h2 className="text-xl font-semibold mb-4 text-foreground">Select Issue Type</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {issueTypes.map((item) => (
               <button
                 key={item.type}
                 onClick={() => setSelectedType(item.type)}
                 data-testid={`issue-type-${item.type}`}
-                className={`p-4 border rounded-lg text-left transition-colors ${
+                className={`p-4 border rounded-lg text-left transition-all duration-200 ${
                   selectedType === item.type
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-accent bg-accent/10 shadow-md'
+                    : 'border-border hover:border-accent/50 hover:shadow-sm bg-card-bg'
                 }`}
               >
-                <h3 className="font-semibold mb-1">{item.title}</h3>
-                <p className="text-sm text-gray-600">{item.description}</p>
+                <h3 className="font-semibold mb-1 text-foreground">{item.title}</h3>
+                <p className="text-sm text-muted">{item.description}</p>
               </button>
             ))}
           </div>
         </div>
 
         {selectedType && (
-          <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-            <p className="text-center text-gray-600 mb-4">
-              You selected: <strong>{selectedType}</strong>
+          <div className="mt-8 p-6 bg-card-bg border border-border rounded-lg shadow-sm">
+            <p className="text-center text-muted mb-4">
+              You selected: <strong className="text-accent">{selectedType}</strong>
             </p>
             <div className="flex justify-center gap-4">
               <Button variant="secondary" onClick={() => setSelectedType(null)}>

@@ -88,8 +88,8 @@ export const FormStep: React.FC<FormStepProps> = ({
     };
 
     const label = (
-      <label htmlFor={field.name} className="block text-sm font-medium text-gray-700 mb-1">
-        {field.label} {field.required && <span className="text-red-500">*</span>}
+      <label htmlFor={field.name} className="block text-sm font-medium text-foreground mb-1">
+        {field.label} {field.required && <span className="text-error">*</span>}
       </label>
     );
 
@@ -137,12 +137,12 @@ export const FormStep: React.FC<FormStepProps> = ({
             <select
               id={field.name}
               {...register(field.name)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-accent bg-input-bg hover:border-accent/50 transition-all duration-200"
             >
               <option value="">Select an option</option>
               {/* Options would be passed in field config in real implementation */}
             </select>
-            {error && <p className="mt-1 text-sm text-red-600">{error.message}</p>}
+            {error && <p className="mt-1 text-sm text-error">{error.message}</p>}
           </div>
         );
 
@@ -168,7 +168,7 @@ export const FormStep: React.FC<FormStepProps> = ({
     <Card className="mt-6">
       <div className="p-6">
         <h2 className="text-2xl font-bold mb-2">{step.title}</h2>
-        <p className="text-gray-600 mb-6">{step.description}</p>
+        <p className="text-muted mb-6">{step.description}</p>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           {step.fields.map(renderField)}

@@ -3,18 +3,18 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { Slot } from '@radix-ui/react-slot';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center rounded-md font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 shadow-sm',
   {
     variants: {
       variant: {
-        primary: 'bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600',
-        secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300 focus-visible:ring-gray-400',
-        ghost: 'bg-transparent hover:bg-gray-100 focus-visible:ring-gray-400',
+        primary: 'bg-accent text-foreground hover:bg-accent-hover hover:shadow-md hover:shadow-accent/20 focus-visible:ring-accent active:scale-[0.98]',
+        secondary: 'bg-secondary text-foreground hover:bg-secondary/90 hover:shadow-md hover:shadow-secondary/20 focus-visible:ring-secondary active:scale-[0.98]',
+        ghost: 'bg-transparent hover:bg-card-bg hover:shadow-sm focus-visible:ring-accent text-foreground',
       },
       size: {
-        sm: 'px-3 py-1.5 text-sm',
-        md: 'px-4 py-2 text-base',
-        lg: 'px-6 py-3 text-lg',
+        sm: 'px-3 py-1.5 text-sm rounded',
+        md: 'px-4 py-2 text-base rounded-md',
+        lg: 'px-6 py-3 text-lg rounded-lg',
       },
     },
     defaultVariants: {

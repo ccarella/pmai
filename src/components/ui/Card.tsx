@@ -23,13 +23,13 @@ export const Card: React.FC<CardProps> = ({
   onClick,
   footer,
 }) => {
-  const baseClasses = 'bg-white rounded-lg';
+  const baseClasses = 'bg-card-bg rounded-lg transition-all duration-200';
   
   const variantClasses = {
-    default: 'shadow',
-    bordered: 'border border-gray-200',
-    elevated: 'shadow-lg',
-    flat: '',
+    default: 'shadow-sm shadow-background/50 border border-border',
+    bordered: 'border-2 border-accent/30',
+    elevated: 'shadow-lg shadow-accent/10 border border-border',
+    flat: 'border border-border/50',
   };
   
   const paddingClasses = {
@@ -39,7 +39,7 @@ export const Card: React.FC<CardProps> = ({
     none: '',
   };
   
-  const interactiveClasses = onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : '';
+  const interactiveClasses = onClick ? 'cursor-pointer hover:shadow-lg hover:shadow-accent/20 hover:border-accent/50 hover:translate-y-[-2px] active:translate-y-0' : '';
   
   const cardClasses = `${baseClasses} ${variantClasses[variant]} ${paddingClasses[padding]} ${interactiveClasses} ${className}`.trim();
   
@@ -49,10 +49,10 @@ export const Card: React.FC<CardProps> = ({
         <div className="flex items-start justify-between mb-4">
           <div>
             {title && (
-              <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+              <h3 className="text-lg font-semibold text-foreground">{title}</h3>
             )}
             {subtitle && (
-              <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
+              <p className="mt-1 text-sm text-muted">{subtitle}</p>
             )}
           </div>
           {headerAction && (
@@ -64,7 +64,7 @@ export const Card: React.FC<CardProps> = ({
       <div>{children}</div>
       
       {footer && (
-        <div className="mt-6 pt-4 border-t border-gray-200">{footer}</div>
+        <div className="mt-6 pt-4 border-t border-border/50">{footer}</div>
       )}
     </div>
   );

@@ -60,19 +60,24 @@ export const ProgressiveForm: React.FC<ProgressiveFormProps> = ({
       animate={{ opacity: 1 }}
       className="max-w-2xl mx-auto"
     >
-      <StepIndicator 
-        steps={steps} 
-        currentStep={currentStep}
-        onStepClick={handleStepClick}
-      />
+      <div className="mb-8">
+        <StepIndicator 
+          steps={steps} 
+          currentStep={currentStep}
+          onStepClick={handleStepClick}
+        />
+      </div>
       
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
-          initial={{ x: 100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: -100, opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          initial={{ x: 100, opacity: 0, scale: 0.95 }}
+          animate={{ x: 0, opacity: 1, scale: 1 }}
+          exit={{ x: -100, opacity: 0, scale: 0.95 }}
+          transition={{ 
+            duration: 0.3,
+            ease: [0.645, 0.045, 0.355, 1.0]
+          }}
         >
           <FormStep
             step={steps[currentStep]}
