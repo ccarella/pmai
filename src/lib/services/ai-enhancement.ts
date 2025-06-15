@@ -149,19 +149,20 @@ Please analyze this ${formData.type} and provide:
 Focus on being specific and actionable. The final prompt should be ready to paste into Claude Code.`;
   }
 
-  private validateEnhancements(enhancements: any): AIEnhancements {
+  private validateEnhancements(enhancements: unknown): AIEnhancements {
+    const obj = enhancements as Record<string, unknown>;
     return {
-      acceptanceCriteria: Array.isArray(enhancements.acceptanceCriteria) 
-        ? enhancements.acceptanceCriteria 
+      acceptanceCriteria: Array.isArray(obj.acceptanceCriteria) 
+        ? obj.acceptanceCriteria as string[]
         : ['The feature works as described'],
-      edgeCases: Array.isArray(enhancements.edgeCases) 
-        ? enhancements.edgeCases 
+      edgeCases: Array.isArray(obj.edgeCases) 
+        ? obj.edgeCases as string[]
         : ['Consider error handling'],
-      technicalConsiderations: Array.isArray(enhancements.technicalConsiderations) 
-        ? enhancements.technicalConsiderations 
+      technicalConsiderations: Array.isArray(obj.technicalConsiderations) 
+        ? obj.technicalConsiderations as string[]
         : ['Ensure security best practices'],
-      finalPrompt: typeof enhancements.finalPrompt === 'string' 
-        ? enhancements.finalPrompt 
+      finalPrompt: typeof obj.finalPrompt === 'string' 
+        ? obj.finalPrompt 
         : 'Please implement this feature following the requirements above.',
     };
   }

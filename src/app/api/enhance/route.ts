@@ -18,16 +18,17 @@ function getAIService(): AIEnhancementService {
 }
 
 // Validate form data
-function validateFormData(data: any): data is { formData: IssueFormData } {
-  return (
-    data &&
-    data.formData &&
-    typeof data.formData === 'object' &&
-    data.formData.type &&
-    data.formData.title &&
-    data.formData.description &&
-    data.formData.context &&
-    data.formData.implementation
+function validateFormData(data: unknown): data is { formData: IssueFormData } {
+  const obj = data as Record<string, unknown>;
+  return Boolean(
+    obj &&
+    obj.formData &&
+    typeof obj.formData === 'object' &&
+    (obj.formData as IssueFormData).type &&
+    (obj.formData as IssueFormData).title &&
+    (obj.formData as IssueFormData).description &&
+    (obj.formData as IssueFormData).context &&
+    (obj.formData as IssueFormData).implementation
   );
 }
 

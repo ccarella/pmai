@@ -115,7 +115,7 @@ describe('useAIEnhancement', () => {
   });
 
   it('should show loading state during enhancement', async () => {
-    let resolvePromise: (value: any) => void;
+    let resolvePromise: (value: Response) => void;
     const promise = new Promise((resolve) => {
       resolvePromise = resolve;
     });
@@ -131,7 +131,7 @@ describe('useAIEnhancement', () => {
     expect(result.current.isLoading).toBe(true);
 
     await act(async () => {
-      resolvePromise!({
+      resolvePromise({
         ok: true,
         json: async () => ({
           enhancements: {
@@ -142,7 +142,7 @@ describe('useAIEnhancement', () => {
           },
           usage: { totalTokens: 100, requestCount: 1, estimatedCost: 0.0045 },
         }),
-      });
+      } as Response);
       await promise;
     });
 

@@ -1,6 +1,7 @@
 import { AIEnhancementService } from '@/lib/services/ai-enhancement';
 import { IssueFormData } from '@/lib/types/issue';
 import OpenAI from 'openai';
+import { ChatCompletion } from 'openai/resources/chat/completions';
 
 // Mock OpenAI
 jest.mock('openai');
@@ -17,7 +18,7 @@ describe('AIEnhancementService', () => {
           create: jest.fn(),
         },
       },
-    } as any;
+    } as unknown as jest.Mocked<OpenAI>;
     
     (OpenAI as jest.MockedClass<typeof OpenAI>).mockImplementation(() => mockOpenAI);
     service = new AIEnhancementService('test-api-key');
@@ -70,7 +71,7 @@ describe('AIEnhancementService', () => {
         }],
       };
 
-      mockOpenAI.chat.completions.create.mockResolvedValueOnce(mockResponse as any);
+      mockOpenAI.chat.completions.create.mockResolvedValueOnce(mockResponse as ChatCompletion);
 
       const result = await service.enhanceIssue(mockFeatureData);
 
@@ -147,7 +148,7 @@ describe('AIEnhancementService', () => {
         }],
       };
 
-      mockOpenAI.chat.completions.create.mockResolvedValueOnce(mockResponse as any);
+      mockOpenAI.chat.completions.create.mockResolvedValueOnce(mockResponse as ChatCompletion);
 
       const result = await service.enhanceIssue(mockBugData);
 
@@ -201,7 +202,7 @@ describe('AIEnhancementService', () => {
             }),
           },
         }],
-      } as any);
+      } as ChatCompletion);
 
       await service.enhanceIssue(longFormData);
 
@@ -244,7 +245,7 @@ describe('AIEnhancementService', () => {
             }),
           },
         }],
-      } as any);
+      } as ChatCompletion);
 
       const result = await service.enhanceIssue(mockEpicData);
 
@@ -293,7 +294,7 @@ describe('AIEnhancementService', () => {
             }),
           },
         }],
-      } as any);
+      } as ChatCompletion);
 
       const result = await service.enhanceIssue(mockTechDebtData);
 
@@ -324,8 +325,11 @@ describe('AIEnhancementService', () => {
         },
       };
 
-      // Access private method through any type assertion for testing
-      const prompt = (service as any).buildPrompt(featureData);
+      // Access private method through type assertion for testing
+      const serviceWithPrivate = service as AIEnhancementService & {
+        buildPrompt: (data: IssueFormData) => string;
+      };
+      const prompt = serviceWithPrivate.buildPrompt(featureData);
 
       expect(prompt).toContain('feature request');
       expect(prompt).toContain(featureData.title);
@@ -352,7 +356,7 @@ describe('AIEnhancementService', () => {
         },
       };
 
-      mockOpenAI.chat.completions.create.mockResolvedValue(mockResponse as any);
+      mockOpenAI.chat.completions.create.mockResolvedValue(mockResponse as ChatCompletion);
 
       // Make multiple requests
       for (let i = 0; i < 5; i++) {

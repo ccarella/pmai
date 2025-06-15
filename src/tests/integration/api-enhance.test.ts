@@ -13,7 +13,7 @@ describe('API Enhancement Integration', () => {
       enhanceIssue: jest.fn(),
       getUsageStats: jest.fn(),
       resetUsageStats: jest.fn(),
-    } as any;
+    } as unknown as jest.Mocked<AIEnhancementService>;
 
     (AIEnhancementService as jest.MockedClass<typeof AIEnhancementService>)
       .mockImplementation(() => mockEnhancementService);
@@ -55,7 +55,7 @@ describe('API Enhancement Integration', () => {
     };
 
     const service = new AIEnhancementService('test-key');
-    const result = await service.enhanceIssue(formData);
+    await service.enhanceIssue(formData);
 
     expect(mockEnhancementService.enhanceIssue).toHaveBeenCalledWith(formData);
   });
