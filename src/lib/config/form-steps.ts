@@ -1,5 +1,5 @@
 import { FormStep } from '@/lib/types/form';
-import { IssueType } from '@/lib/types/issue';
+import { IssueType, IssueFormData } from '@/lib/types/issue';
 import {
   baseIssueSchema,
   contextSchema,
@@ -221,7 +221,7 @@ export function getStepValidation(type: IssueType, stepId: string) {
 }
 
 // Check if all required steps are complete
-export function isFormComplete(type: IssueType, formData: any): boolean {
+export function isFormComplete(type: IssueType, formData: Partial<IssueFormData>): boolean {
   const steps = getFormSteps(type);
   
   // Need to validate each step's specific data shape

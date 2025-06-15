@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { IssueFormData, IssueType } from '@/lib/types/issue';
+import { IssueFormData } from '@/lib/types/issue';
 
 interface FormContextType {
   formData: Partial<IssueFormData>;
@@ -43,22 +43,33 @@ export function FormProvider({ children }: { children: React.ReactNode }) {
 
   const updateFormData = useCallback((data: Partial<IssueFormData>) => {
     setFormData(prev => {
-      const updated = { ...prev };
-      
       // Deep merge the data
-      Object.keys(data).forEach(key => {
-        const typedKey = key as keyof IssueFormData;
-        if (typeof data[typedKey] === 'object' && !Array.isArray(data[typedKey])) {
-          updated[typedKey] = {
-            ...prev[typedKey] as any,
-            ...data[typedKey] as any,
-          };
-        } else {
-          updated[typedKey] = data[typedKey] as any;
-        }
-      });
+      const merged: Partial<IssueFormData> = {
+        ...prev,
+        ...data,
+      };
       
-      return updated;
+      // Special handling for nested objects
+      if (data.context) {
+        merged.context = {
+          ...prev.context,
+          ...data.context,
+        };
+      }
+      if (data.technical) {
+        merged.technical = {
+          ...prev.technical,
+          ...data.technical,
+        };
+      }
+      if (data.implementation) {
+        merged.implementation = {
+          ...prev.implementation,
+          ...data.implementation,
+        };
+      }
+      
+      return merged;
     });
   }, []);
 

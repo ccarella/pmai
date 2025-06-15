@@ -28,7 +28,7 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
     if (formData.type && formData.title && formData.description) {
       enhance(formData as IssueFormData);
     }
-  }, []);
+  }, [enhance, formData]);
   
   const enhancedData = {
     ...formData,
