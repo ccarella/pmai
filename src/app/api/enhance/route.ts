@@ -2,20 +2,21 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AIEnhancementService } from '@/lib/services/ai-enhancement';
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/utils/rate-limit';
 import { IssueFormData } from '@/lib/types/issue';
+import { getDefaultEnhancements } from '@/lib/utils/default-enhancements';
 
 // Initialize AI service (singleton pattern)
 let aiService: AIEnhancementService | null = null;
 
-function getAIService(): AIEnhancementService {
+function getAIService(): AIEnhancementService | null {
   if (!aiService) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      throw new Error('OpenAI API key not configured');
+      // Return null if API key not configured - will use defaults
+      return null;
     }
     aiService = new AIEnhancementService(apiKey);
   }
   return aiService;
-}
 
 // Validate form data
 function validateFormData(data: unknown): data is { formData: IssueFormData } {
@@ -74,6 +75,25 @@ export async function POST(request: NextRequest) {
 
     // Get AI service
     const service = getAIService();
+    
+    // If no service available (no API key), return default enhancements
+    if (!service) {
+      const defaultEnhancements = getDefaultEnhancements(formData.type);
+      return NextResponse.json(
+        {
+          enhancements: defaultEnhancements,
+          usage: {
+            totalTokens: 0,
+            requestCount: 0,
+            estimatedCost: 0,
+          },
+        },
+        {
+          status: 200,
+          headers: getRateLimitHeaders(rateLimit),
+        }
+      );
+    }
     
     // Check cost protection
     const usage = service.getUsageStats();
