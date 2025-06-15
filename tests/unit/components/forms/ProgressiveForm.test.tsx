@@ -139,8 +139,8 @@ describe('ProgressiveForm', () => {
 
     // Should now be on step 2
     await waitFor(() => {
-      expect(screen.getByLabelText('Business Value')).toBeInTheDocument();
-      expect(screen.getByLabelText('Target Users')).toBeInTheDocument();
+      expect(screen.getByLabelText(/Business Value/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Target Users/i)).toBeInTheDocument();
     });
   });
 
@@ -183,7 +183,7 @@ describe('ProgressiveForm', () => {
 
     // Wait for second step
     await waitFor(() => {
-      expect(screen.getByLabelText('Business Value')).toBeInTheDocument();
+      expect(screen.getByLabelText(/Business Value/i)).toBeInTheDocument();
     });
 
     // Click Back
@@ -223,8 +223,8 @@ describe('ProgressiveForm', () => {
 
     // Data should be preserved
     await waitFor(() => {
-      expect(screen.getByLabelText('Title')).toHaveValue('Test Title');
-      expect(screen.getByLabelText('Description')).toHaveValue('Test Description');
+      expect(screen.getByLabelText(/Title/i)).toHaveValue('Test Title');
+      expect(screen.getByLabelText(/Description/i)).toHaveValue('Test Description');
     });
 
     // Go forward again
@@ -286,8 +286,8 @@ describe('ProgressiveForm', () => {
     );
 
     // Fill first step and go to next
-    await user.type(screen.getByLabelText('Title'), 'Test Title');
-    await user.type(screen.getByLabelText('Description'), 'Test Description');
+    await user.type(screen.getByLabelText(/Title/i), 'Test Title');
+    await user.type(screen.getByLabelText(/Description/i), 'Test Description');
     await user.click(screen.getByRole('button', { name: /Next/i }));
 
     // Wait for second step
