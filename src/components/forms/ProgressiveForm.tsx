@@ -26,7 +26,7 @@ export const ProgressiveForm: React.FC<ProgressiveFormProps> = ({
   // Auto-save to localStorage
   useFormPersistence(formData);
 
-  const handleNext = useCallback(async (stepData: any) => {
+  const handleNext = useCallback(async (stepData: Partial<IssueFormData>) => {
     // Update form data with current step data
     const updatedData = { ...formData, ...stepData };
     setFormData(updatedData);

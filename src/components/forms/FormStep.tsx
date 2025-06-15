@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/Card';
 interface FormStepProps {
   step: FormStepType;
   data: Partial<IssueFormData>;
-  onNext: (stepData: any) => void | Promise<void>;
+  onNext: (stepData: Partial<IssueFormData>) => void | Promise<void>;
   onBack: () => void;
   isFirstStep: boolean;
   isLastStep: boolean;
@@ -33,7 +33,7 @@ export const FormStep: React.FC<FormStepProps> = ({
 
   // Get initial values for this step's fields
   const getInitialValues = () => {
-    const values: any = {};
+    const values: Record<string, unknown> = {};
     step.fields.forEach(field => {
       const value = getNestedValue(data, field.name);
       values[field.name] = value ?? '';
@@ -47,12 +47,13 @@ export const FormStep: React.FC<FormStepProps> = ({
     formState: { errors },
     clearErrors,
   } = useForm({
-    resolver: zodResolver(step.validation),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(step.validation as any),
     defaultValues: getInitialValues(),
     mode: 'onSubmit',
   });
 
-  const onSubmit = useCallback(async (formData: any) => {
+  const onSubmit = useCallback(async (formData: Record<string, unknown>) => {
     setIsValidating(true);
     try {
       // Convert flat form data to nested structure if needed
@@ -69,13 +70,13 @@ export const FormStep: React.FC<FormStepProps> = ({
       return null;
     }
 
-    const error = getNestedError(errors, field.name);
+    const error = getNestedError(errors, field.name) as { message?: string } | undefined;
     const fieldProps = {
       ...register(field.name),
       placeholder: field.placeholder,
       required: field.required,
       error: error?.message,
-      onChange: (e: any) => {
+      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         register(field.name).onChange(e);
         // Clear error when user starts typing
         if (error) {
@@ -170,20 +171,20 @@ export const FormStep: React.FC<FormStepProps> = ({
 };
 
 // Helper function to get nested values from data object
-function getNestedValue(obj: any, path: string): any {
+function getNestedValue(obj: Record<string, unknown>, path: string): unknown {
   const keys = path.split('.');
-  return keys.reduce((acc, key) => acc?.[key], obj);
+  return keys.reduce<unknown>((acc, key) => (acc as Record<string, unknown>)?.[key], obj);
 }
 
 // Helper function to get nested errors
-function getNestedError(errors: any, path: string): any {
+function getNestedError(errors: Record<string, unknown>, path: string): unknown {
   const keys = path.split('.');
-  return keys.reduce((acc, key) => acc?.[key], errors);
+  return keys.reduce<unknown>((acc, key) => (acc as Record<string, unknown>)?.[key], errors);
 }
 
 // Helper function to convert flat form data to nested structure
-function convertToNestedData(formData: any): any {
-  const result: any = {};
+function convertToNestedData(formData: Record<string, unknown>): Partial<IssueFormData> {
+  const result: Record<string, unknown> = {};
 
   Object.keys(formData).forEach(key => {
     const keys = key.split('.');
@@ -196,10 +197,10 @@ function convertToNestedData(formData: any): any {
         if (!current[k]) {
           current[k] = {};
         }
-        current = current[k];
+        current = current[k] as Record<string, unknown>;
       }
     });
   });
 
-  return result;
+  return result as Partial<IssueFormData>;
 }

@@ -6,7 +6,8 @@ export interface FormStep {
   title: string;
   description: string;
   fields: FormField[];
-  validation: z.ZodSchema;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  validation: z.ZodType<any>;
 }
 
 export interface FormField {
