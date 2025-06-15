@@ -27,10 +27,8 @@ export const FormStep: React.FC<FormStepProps> = ({
   onBack,
   isFirstStep,
   isLastStep,
-  isSubmitting = false,
+  isSubmitting: externalIsSubmitting = false,
 }) => {
-  const [isValidating, setIsValidating] = useState(false);
-
   // Get initial values for this step's fields
   const getInitialValues = () => {
     const values: Record<string, unknown> = {};
@@ -44,7 +42,7 @@ export const FormStep: React.FC<FormStepProps> = ({
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting, isValidating },
     clearErrors,
   } = useForm({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,14 +52,9 @@ export const FormStep: React.FC<FormStepProps> = ({
   });
 
   const onSubmit = useCallback(async (formData: Record<string, unknown>) => {
-    setIsValidating(true);
-    try {
-      // Convert flat form data to nested structure if needed
-      const nestedData = convertToNestedData(formData);
-      await onNext(nestedData);
-    } finally {
-      setIsValidating(false);
-    }
+    // Convert flat form data to nested structure if needed
+    const nestedData = convertToNestedData(formData);
+    await onNext(nestedData);
   }, [onNext]);
 
   const renderField = (field: FormField) => {
@@ -97,7 +90,6 @@ export const FormStep: React.FC<FormStepProps> = ({
           <div key={field.name}>
             {label}
             <Input id={field.name} type="text" {...fieldProps} />
-            {error && <p className="mt-1 text-sm text-red-600">{error.message}</p>}
           </div>
         );
 
@@ -106,7 +98,6 @@ export const FormStep: React.FC<FormStepProps> = ({
           <div key={field.name}>
             {label}
             <Textarea id={field.name} {...fieldProps} />
-            {error && <p className="mt-1 text-sm text-red-600">{error.message}</p>}
           </div>
         );
 
@@ -131,7 +122,7 @@ export const FormStep: React.FC<FormStepProps> = ({
     }
   };
 
-  const isLoading = isValidating || isSubmitting;
+  const isLoading = isValidating || isSubmitting || externalIsSubmitting;
 
   return (
     <Card className="mt-6">
