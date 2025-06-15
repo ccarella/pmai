@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a Next.js 15.3.3 application using the App Router, TypeScript, and Tailwind CSS v4.
+This is a Next.js 15.3.3 application using the App Router, TypeScript, and Tailwind CSS v4. The application is a GitHub Issue Generator that helps create comprehensive, AI-optimized GitHub issues for AI coding assistants like Claude Code.
 
 ## Development Commands
 
@@ -23,6 +23,9 @@ npm test
 
 # Run linting
 npm run lint
+
+# Run tests
+npm test
 ```
 
 ## Architecture
@@ -31,21 +34,66 @@ npm run lint
 - **Server Components**: Components are server-side by default. Use `"use client"` directive for client-side interactivity
 - **Styling**: Tailwind CSS v4 with PostCSS. Global styles in `src/app/globals.css`
 - **TypeScript**: Strict mode enabled with path alias `@/*` mapping to `src/*`
+- **Form Management**: React Hook Form with Zod validation
+- **State Management**: Context API for form persistence
+- **Testing**: Jest with React Testing Library
 
 ## Code Structure
 
 ```
-src/app/
-├── layout.tsx    # Root layout with HTML structure and fonts
-├── page.tsx      # Home page component
-└── globals.css   # Global styles and Tailwind directives
+src/
+├── app/
+│   ├── layout.tsx         # Root layout with HTML structure and fonts
+│   ├── page.tsx           # Home page (landing)
+│   ├── globals.css        # Global styles and Tailwind directives
+│   └── create/
+│       ├── page.tsx       # Issue type selection
+│       └── [type]/[step]/ # Dynamic form steps
+├── components/
+│   ├── forms/            # Form-related components
+│   ├── ui/               # Reusable UI components
+│   ├── preview/          # Issue preview components
+│   └── providers/        # Context providers
+├── lib/
+│   ├── types/           # TypeScript type definitions
+│   ├── config/          # Form steps configuration
+│   ├── templates/       # Markdown/prompt templates
+│   ├── utils/           # Utility functions
+│   ├── hooks/           # Custom React hooks
+│   └── services/        # API services
+└── tests/               # Test files
 ```
 
-## Key Configuration
+## Design System
 
-- **Turbopack**: Development server uses `--turbopack` flag for faster builds
-- **Fonts**: Uses Geist Sans and Geist Mono from Google Fonts
-- **Dark Mode**: Supported via CSS `prefers-color-scheme` media query
+**NOTE: There is an active PR (#8) implementing a Dracula theme redesign. The main branch currently uses the default color scheme.**
 
-## Prompt
-Think about how you will approach this, create a new github branch, write tests first, implement the feauture, run npm test, fix anything that does not pass, make a pull request on github, monitor the pull request for all tests passing, fix anything that goes wrong and when everything passes notify me that the PR is safe to merge.
+- **Current (main branch)**: Standard Tailwind colors (blue, gray, etc.)
+- **Pending (PR #8)**: Dracula theme with purple accents and dark mode optimizations
+
+## Key Features
+
+1. **Multi-step Form Wizard**: Progressive form with validation
+2. **Issue Type Support**: Feature, Bug, Epic, Technical Debt
+3. **AI Enhancement**: Integration for generating acceptance criteria
+4. **Form Persistence**: LocalStorage-based form data saving
+5. **Markdown Generation**: Creates GitHub-ready issue content
+6. **Claude Prompt Generation**: Optimized prompts for AI assistance
+
+## Testing Strategy
+
+- Unit tests for all components and utilities
+- Integration tests for API routes
+- Form validation testing
+- Accessibility testing with ARIA attributes
+
+## Development Workflow
+
+1. Create a new branch for features
+2. Write tests first (TDD approach)
+3. Implement the feature
+4. Run `npm test` and fix any failures
+5. Create a pull request
+6. Monitor PR for test results
+7. Fix any issues that arise
+8. Notify when PR is ready to merge
