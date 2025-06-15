@@ -1,10 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { IssueType } from '@/lib/types/issue';
+import { getFormSteps } from '@/lib/config/form-steps';
 
 export default function CreateIssuePage() {
+  const router = useRouter();
   const [selectedType, setSelectedType] = useState<IssueType | null>(null);
 
   const issueTypes: { type: IssueType; title: string; description: string }[] = [
@@ -68,7 +71,12 @@ export default function CreateIssuePage() {
               <Button variant="secondary" onClick={() => setSelectedType(null)}>
                 Back
               </Button>
-              <Button>
+              <Button
+                onClick={() => {
+                  const steps = getFormSteps(selectedType);
+                  router.push(`/create/${selectedType}/${steps[0].id}`);
+                }}
+              >
                 Continue
               </Button>
             </div>

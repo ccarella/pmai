@@ -1,60 +1,58 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StepIndicator } from './StepIndicator';
 import { FormStep } from './FormStep';
 import { FormStep as FormStepType } from '@/lib/types/form';
-import { IssueFormData } from '@/lib/types/issue';
-import { useFormPersistence } from '@/lib/hooks/useFormPersistence';
+import { IssueFormData, IssueType } from '@/lib/types/issue';
+import { useFormContext } from '@/components/providers/FormProvider';
 
 interface ProgressiveFormProps {
+  issueType: IssueType;
   steps: FormStepType[];
-  onSubmit: (data: IssueFormData) => void | Promise<void>;
-  initialData: Partial<IssueFormData>;
+  currentStep: number;
 }
 
 export const ProgressiveForm: React.FC<ProgressiveFormProps> = ({
+  issueType,
   steps,
-  onSubmit,
-  initialData,
+  currentStep,
 }) => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<Partial<IssueFormData>>(initialData);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Auto-save to localStorage
-  useFormPersistence(formData);
+  const router = useRouter();
+  const { formData, updateFormData } = useFormContext();
 
   const handleNext = useCallback(async (stepData: Partial<IssueFormData>) => {
     // Update form data with current step data
-    const updatedData = { ...formData, ...stepData };
-    setFormData(updatedData);
+    updateFormData(stepData);
 
-    // If this is the last step, submit the form
-    if (currentStep === steps.length - 1) {
-      setIsSubmitting(true);
-      try {
-        await onSubmit(updatedData as IssueFormData);
-      } finally {
-        setIsSubmitting(false);
-      }
-    } else {
-      // Move to next step
-      setCurrentStep(prev => prev + 1);
+    // If this is the preview step, don't navigate
+    if (steps[currentStep].id === 'preview') {
+      return;
     }
-  }, [currentStep, formData, onSubmit, steps.length]);
+
+    // Navigate to next step
+    const nextStep = steps[currentStep + 1];
+    if (nextStep) {
+      router.push(`/create/${issueType}/${nextStep.id}`);
+    }
+  }, [currentStep, issueType, router, steps, updateFormData]);
 
   const handleBack = useCallback(() => {
-    setCurrentStep(prev => Math.max(0, prev - 1));
-  }, []);
+    if (currentStep > 0) {
+      const prevStep = steps[currentStep - 1];
+      router.push(`/create/${issueType}/${prevStep.id}`);
+    }
+  }, [currentStep, issueType, router, steps]);
 
   const handleStepClick = useCallback((stepIndex: number) => {
     // Only allow navigation to previous steps or current step
     if (stepIndex <= currentStep) {
-      setCurrentStep(stepIndex);
+      const targetStep = steps[stepIndex];
+      router.push(`/create/${issueType}/${targetStep.id}`);
     }
-  }, [currentStep]);
+  }, [currentStep, issueType, router, steps]);
 
   return (
     <motion.div
@@ -83,7 +81,7 @@ export const ProgressiveForm: React.FC<ProgressiveFormProps> = ({
             onBack={handleBack}
             isFirstStep={currentStep === 0}
             isLastStep={currentStep === steps.length - 1}
-            isSubmitting={isSubmitting}
+            isSubmitting={false}
           />
         </motion.div>
       </AnimatePresence>
