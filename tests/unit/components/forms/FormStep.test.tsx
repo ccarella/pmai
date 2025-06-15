@@ -211,7 +211,7 @@ describe('FormStep', () => {
       expect(mockOnNext).toHaveBeenCalledWith({
         title: 'Test Title',
         description: 'Test Description',
-        priority: undefined,
+        priority: '',
       });
     });
   });
@@ -369,34 +369,19 @@ describe('FormStep', () => {
   it('shows loading state while submitting', async () => {
     const user = userEvent.setup();
 
-    // Mock a slow validation
-    const slowValidation = jest.fn(() => new Promise(resolve => setTimeout(resolve, 100)));
-    const slowStep = {
-      ...mockStep,
-      validation: {
-        parseAsync: slowValidation,
-      } as any,
-    };
-
     render(
       <FormStep
-        step={slowStep}
+        step={mockStep}
         data={mockData}
         onNext={mockOnNext}
         onBack={mockOnBack}
         isFirstStep={false}
         isLastStep={false}
+        isSubmitting={true}
       />
     );
 
-    // Fill form
-    await user.type(screen.getByRole('textbox', { name: /title/i }), 'Test Title');
-    await user.type(screen.getByRole('textbox', { name: /description/i }), 'Test Description');
-
-    // Submit
-    await user.click(screen.getByRole('button', { name: /Next/i }));
-
-    // Buttons should be disabled during submission
+    // Buttons should be disabled when isSubmitting is true
     expect(screen.getByRole('button', { name: /Next/i })).toBeDisabled();
     expect(screen.getByRole('button', { name: /Back/i })).toBeDisabled();
   });

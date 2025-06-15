@@ -7,8 +7,10 @@ import { FormStep as FormStepType, FormField } from '@/lib/types/form';
 import { IssueFormData } from '@/lib/types/issue';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
+import { MultiSelect } from '@/components/ui/MultiSelect';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { IssuePreview } from '@/components/preview/IssuePreview';
 
 interface FormStepProps {
   step: FormStepType;
@@ -34,7 +36,12 @@ export const FormStep: React.FC<FormStepProps> = ({
     const values: Record<string, unknown> = {};
     step.fields.forEach(field => {
       const value = getNestedValue(data, field.name);
-      values[field.name] = value ?? '';
+      // For multiselect fields, ensure we have an array
+      if (field.type === 'multiselect') {
+        values[field.name] = value || [];
+      } else {
+        values[field.name] = value ?? '';
+      }
     });
     return values;
   };
@@ -44,6 +51,8 @@ export const FormStep: React.FC<FormStepProps> = ({
     handleSubmit,
     formState: { errors, isSubmitting, isValidating },
     clearErrors,
+    setValue,
+    watch,
   } = useForm({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(step.validation as any),
@@ -101,6 +110,26 @@ export const FormStep: React.FC<FormStepProps> = ({
           </div>
         );
 
+      case 'multiselect':
+        const currentValue = watch(field.name) || [];
+        return (
+          <div key={field.name}>
+            {label}
+            <MultiSelect
+              name={field.name}
+              value={currentValue as string[]}
+              onChange={(value) => {
+                setValue(field.name, value);
+                if (error) {
+                  clearErrors(field.name);
+                }
+              }}
+              placeholder={field.placeholder}
+              error={error?.message}
+            />
+          </div>
+        );
+
       case 'select':
         return (
           <div key={field.name}>
@@ -123,6 +152,17 @@ export const FormStep: React.FC<FormStepProps> = ({
   };
 
   const isLoading = isValidating || isSubmitting || externalIsSubmitting;
+
+  // Special handling for preview step
+  if (step.id === 'preview') {
+    return (
+      <IssuePreview
+        formData={data}
+        onEdit={onBack}
+        onSubmit={() => onNext({})}
+      />
+    );
+  }
 
   return (
     <Card className="mt-6">

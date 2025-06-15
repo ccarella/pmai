@@ -5,6 +5,12 @@ import { ProgressiveForm } from '@/components/forms/ProgressiveForm';
 import { FormStep } from '@/lib/types/form';
 import { IssueFormData } from '@/lib/types/issue';
 import { z } from 'zod';
+import { useRouter } from 'next/navigation';
+
+// Mock next/navigation
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(),
+}));
 
 // Mock framer-motion to avoid animation issues in tests
 jest.mock('framer-motion', () => ({
@@ -14,12 +20,37 @@ jest.mock('framer-motion', () => ({
   AnimatePresence: ({ children }: any) => <>{children}</>,
 }));
 
-// Mock the useFormPersistence hook
-jest.mock('@/lib/hooks/useFormPersistence', () => ({
-  useFormPersistence: jest.fn(),
+// Mock FormProvider
+const mockFormData: Partial<IssueFormData> = {
+  type: 'feature',
+  title: '',
+  description: '',
+};
+const mockUpdateFormData = jest.fn();
+
+jest.mock('@/components/providers/FormProvider', () => ({
+  useFormContext: () => ({
+    formData: mockFormData,
+    updateFormData: mockUpdateFormData,
+    resetForm: jest.fn(),
+    isDataLoaded: true,
+  }),
+}));
+
+// Mock IssuePreview component
+jest.mock('@/components/preview/IssuePreview', () => ({
+  IssuePreview: ({ onEdit, onSubmit }: any) => (
+    <div>
+      <h2>Preview</h2>
+      <button onClick={onEdit}>Edit</button>
+      <button onClick={onSubmit}>Create Issue</button>
+    </div>
+  ),
 }));
 
 describe('ProgressiveForm', () => {
+  const mockPush = jest.fn();
+  
   const mockSteps: FormStep[] = [
     {
       id: 'basic',
@@ -73,48 +104,62 @@ describe('ProgressiveForm', () => {
         }),
       }),
     },
+    {
+      id: 'preview',
+      title: 'Preview & Generate',
+      description: 'Review your issue',
+      fields: [],
+      validation: z.object({}),
+    },
   ];
-
-  const mockInitialData: Partial<IssueFormData> = {
-    type: 'feature',
-    title: '',
-    description: '',
-  };
-
-  const mockOnSubmit = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useRouter as jest.Mock).mockReturnValue({
+      push: mockPush,
+    });
   });
 
-  it('renders the first step by default', () => {
+  it('renders the current step', () => {
     render(
       <ProgressiveForm
+        issueType="feature"
         steps={mockSteps}
-        onSubmit={mockOnSubmit}
-        initialData={mockInitialData}
+        currentStep={0}
       />
     );
 
-    // Check that the form step is rendered with the title as a heading
     expect(screen.getByRole('heading', { name: 'Basic Information' })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /title/i })).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /description/i })).toBeInTheDocument();
   });
 
+  it('renders preview step correctly', () => {
+    render(
+      <ProgressiveForm
+        issueType="feature"
+        steps={mockSteps}
+        currentStep={2} // Preview step
+      />
+    );
+
+    expect(screen.getByRole('heading', { name: 'Preview' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Create Issue' })).toBeInTheDocument();
+  });
+
   it('renders StepIndicator with correct props', () => {
     render(
       <ProgressiveForm
+        issueType="feature"
         steps={mockSteps}
-        onSubmit={mockOnSubmit}
-        initialData={mockInitialData}
+        currentStep={0}
       />
     );
 
     const stepIndicator = screen.getByRole('navigation', { name: /Form progress/i });
     expect(stepIndicator).toBeInTheDocument();
     
-    // Check for step buttons instead of text to avoid duplicates
     expect(screen.getByRole('button', { name: /Basic Information/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Business Context/i })).toBeInTheDocument();
   });
@@ -124,9 +169,9 @@ describe('ProgressiveForm', () => {
     
     render(
       <ProgressiveForm
+        issueType="feature"
         steps={mockSteps}
-        onSubmit={mockOnSubmit}
-        initialData={mockInitialData}
+        currentStep={0}
       />
     );
 
@@ -137,10 +182,10 @@ describe('ProgressiveForm', () => {
     // Click Next
     await user.click(screen.getByRole('button', { name: /Next/i }));
 
-    // Should now be on step 2
+    // Should navigate to next step
     await waitFor(() => {
-      expect(screen.getByLabelText(/Business Value/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/Target Users/i)).toBeInTheDocument();
+      expect(mockUpdateFormData).toHaveBeenCalled();
+      expect(mockPush).toHaveBeenCalledWith('/create/feature/context');
     });
   });
 
@@ -149,9 +194,9 @@ describe('ProgressiveForm', () => {
     
     render(
       <ProgressiveForm
+        issueType="feature"
         steps={mockSteps}
-        onSubmit={mockOnSubmit}
-        initialData={mockInitialData}
+        currentStep={0}
       />
     );
 
@@ -163,115 +208,27 @@ describe('ProgressiveForm', () => {
       expect(screen.getByText('Title is required')).toBeInTheDocument();
       expect(screen.getByText('Description is required')).toBeInTheDocument();
     });
+    
+    // Should not navigate
+    expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it('navigates back to previous step when Back button is clicked', async () => {
+  it('navigates back when Back button is clicked', async () => {
     const user = userEvent.setup();
     
     render(
       <ProgressiveForm
+        issueType="feature"
         steps={mockSteps}
-        onSubmit={mockOnSubmit}
-        initialData={mockInitialData}
+        currentStep={1} // Second step
       />
     );
-
-    // Fill first step and go to next
-    await user.type(screen.getByRole('textbox', { name: /title/i }), 'Test Issue Title');
-    await user.type(screen.getByRole('textbox', { name: /description/i }), 'Test issue description');
-    await user.click(screen.getByRole('button', { name: /Next/i }));
-
-    // Wait for second step
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Business Value/i)).toBeInTheDocument();
-    });
 
     // Click Back
     await user.click(screen.getByRole('button', { name: /Back/i }));
 
-    // Should be back on first step with data preserved
-    await waitFor(() => {
-      expect(screen.getByRole('textbox', { name: /title/i })).toHaveValue('Test Issue Title');
-      expect(screen.getByRole('textbox', { name: /description/i })).toHaveValue('Test issue description');
-    });
-  });
-
-  it('preserves form data when navigating between steps', async () => {
-    const user = userEvent.setup();
-    
-    render(
-      <ProgressiveForm
-        steps={mockSteps}
-        onSubmit={mockOnSubmit}
-        initialData={mockInitialData}
-      />
-    );
-
-    // Fill first step
-    await user.type(screen.getByRole('textbox', { name: /title/i }), 'Test Title');
-    await user.type(screen.getByRole('textbox', { name: /description/i }), 'Test Description');
-    
-    // Go to next step
-    await user.click(screen.getByRole('button', { name: /Next/i }));
-
-    // Fill second step
-    await waitFor(() => screen.getByRole('textbox', { name: /business value/i }));
-    await user.type(screen.getByRole('textbox', { name: /business value/i }), 'High value feature');
-    
-    // Go back
-    await user.click(screen.getByRole('button', { name: /Back/i }));
-
-    // Data should be preserved
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Title/i)).toHaveValue('Test Title');
-      expect(screen.getByLabelText(/Description/i)).toHaveValue('Test Description');
-    });
-
-    // Go forward again
-    await user.click(screen.getByRole('button', { name: /Next/i }));
-
-    // Second step data should also be preserved
-    await waitFor(() => {
-      expect(screen.getByRole('textbox', { name: /business value/i })).toHaveValue('High value feature');
-    });
-  });
-
-  it('calls onSubmit when form is completed', async () => {
-    const user = userEvent.setup();
-    
-    render(
-      <ProgressiveForm
-        steps={mockSteps}
-        onSubmit={mockOnSubmit}
-        initialData={mockInitialData}
-      />
-    );
-
-    // Fill first step
-    await user.type(screen.getByRole('textbox', { name: /title/i }), 'Test Title');
-    await user.type(screen.getByRole('textbox', { name: /description/i }), 'Test Description');
-    await user.click(screen.getByRole('button', { name: /Next/i }));
-
-    // Fill second step
-    await waitFor(() => screen.getByRole('textbox', { name: /business value/i }));
-    await user.type(screen.getByRole('textbox', { name: /business value/i }), 'High value');
-    await user.type(screen.getByRole('textbox', { name: /target users/i }), 'All users');
-
-    // Submit form
-    await user.click(screen.getByRole('button', { name: /Submit/i }));
-
-    // Should call onSubmit with all form data
-    await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({
-        type: 'feature',
-        title: 'Test Title',
-        description: 'Test Description',
-        context: {
-          businessValue: 'High value',
-          targetUsers: 'All users',
-        },
-      }));
-    });
+    // Should navigate to previous step
+    expect(mockPush).toHaveBeenCalledWith('/create/feature/basic');
   });
 
   it('allows navigation by clicking on step indicator', async () => {
@@ -279,35 +236,25 @@ describe('ProgressiveForm', () => {
     
     render(
       <ProgressiveForm
+        issueType="feature"
         steps={mockSteps}
-        onSubmit={mockOnSubmit}
-        initialData={mockInitialData}
+        currentStep={2} // On preview step
       />
     );
 
-    // Fill first step and go to next
-    await user.type(screen.getByLabelText(/Title/i), 'Test Title');
-    await user.type(screen.getByLabelText(/Description/i), 'Test Description');
-    await user.click(screen.getByRole('button', { name: /Next/i }));
-
-    // Wait for second step
-    await waitFor(() => screen.getByRole('heading', { name: 'Business Context' }));
-
     // Click on first step in indicator
-    await user.click(screen.getByRole('button', { name: /Basic Information.*Completed/i }));
+    await user.click(screen.getByRole('button', { name: /Basic Information/i }));
 
-    // Should be back on first step
-    await waitFor(() => {
-      expect(screen.getByRole('textbox', { name: /title/i })).toBeInTheDocument();
-    });
+    // Should navigate to that step
+    expect(mockPush).toHaveBeenCalledWith('/create/feature/basic');
   });
 
-  it('disables Back button on first step', () => {
+  it('does not show Back button on first step', () => {
     render(
       <ProgressiveForm
+        issueType="feature"
         steps={mockSteps}
-        onSubmit={mockOnSubmit}
-        initialData={mockInitialData}
+        currentStep={0}
       />
     );
 
@@ -315,80 +262,106 @@ describe('ProgressiveForm', () => {
     expect(backButton).not.toBeInTheDocument();
   });
 
-  it('shows Submit button on last step instead of Next', async () => {
+  it('shows Submit button on last non-preview step', () => {
+    render(
+      <ProgressiveForm
+        issueType="feature"
+        steps={[mockSteps[0], mockSteps[1]]} // Without preview
+        currentStep={1} // Last step
+      />
+    );
+
+    expect(screen.getByRole('button', { name: /Submit/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Next/i })).not.toBeInTheDocument();
+  });
+
+  it('updates form data when navigating to next step', async () => {
     const user = userEvent.setup();
     
     render(
       <ProgressiveForm
+        issueType="feature"
         steps={mockSteps}
-        onSubmit={mockOnSubmit}
-        initialData={mockInitialData}
+        currentStep={0}
       />
     );
 
-    // Fill first step and go to next
     await user.type(screen.getByRole('textbox', { name: /title/i }), 'Test Title');
     await user.type(screen.getByRole('textbox', { name: /description/i }), 'Test Description');
     await user.click(screen.getByRole('button', { name: /Next/i }));
 
-    // On last step, should show Submit instead of Next
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Submit/i })).toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /Next/i })).not.toBeInTheDocument();
+      expect(mockUpdateFormData).toHaveBeenCalledWith({
+        title: 'Test Title',
+        description: 'Test Description',
+      });
     });
   });
 
-  it('initializes with provided initial data', () => {
-    const initialDataWithValues: Partial<IssueFormData> = {
-      type: 'bug',
-      title: 'Initial Title',
-      description: 'Initial Description',
-    };
+  it('handles multiselect fields correctly', () => {
+    const stepsWithMultiselect: FormStep[] = [{
+      id: 'technical',
+      title: 'Technical Details',
+      description: 'Technical information',
+      fields: [{
+        name: 'technical.components',
+        label: 'Components',
+        type: 'multiselect',
+        placeholder: 'Add components',
+        required: true,
+      }],
+      validation: z.object({
+        technical: z.object({
+          components: z.array(z.string()).min(1),
+        }),
+      }),
+    }];
 
     render(
       <ProgressiveForm
-        steps={mockSteps}
-        onSubmit={mockOnSubmit}
-        initialData={initialDataWithValues}
+        issueType="feature"
+        steps={stepsWithMultiselect}
+        currentStep={0}
       />
     );
 
-    expect(screen.getByRole('textbox', { name: /title/i })).toHaveValue('Initial Title');
-    expect(screen.getByRole('textbox', { name: /description/i })).toHaveValue('Initial Description');
+    expect(screen.getByText('Components')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Add components')).toBeInTheDocument();
   });
 
-  it('handles loading state during form submission', async () => {
+  it('handles preview step edit action', async () => {
     const user = userEvent.setup();
     
-    // Mock a slow submission
-    const slowSubmit = jest.fn(() => new Promise(resolve => setTimeout(resolve, 100)));
-    
     render(
       <ProgressiveForm
+        issueType="feature"
         steps={mockSteps}
-        onSubmit={slowSubmit}
-        initialData={mockInitialData}
+        currentStep={2} // Preview step
       />
     );
 
-    // Fill all steps
-    await user.type(screen.getByRole('textbox', { name: /title/i }), 'Test Title');
-    await user.type(screen.getByRole('textbox', { name: /description/i }), 'Test Description');
-    await user.click(screen.getByRole('button', { name: /Next/i }));
+    await user.click(screen.getByRole('button', { name: 'Edit' }));
 
-    await waitFor(() => screen.getByRole('textbox', { name: /business value/i }));
-    await user.type(screen.getByRole('textbox', { name: /business value/i }), 'High value');
-    await user.type(screen.getByRole('textbox', { name: /target users/i }), 'All users');
+    // Should navigate back to previous step
+    expect(mockPush).toHaveBeenCalledWith('/create/feature/context');
+  });
 
-    // Submit form
-    await user.click(screen.getByRole('button', { name: /Submit/i }));
+  it('restricts step navigation to completed steps only', async () => {
+    const user = userEvent.setup();
+    
+    render(
+      <ProgressiveForm
+        issueType="feature"
+        steps={mockSteps}
+        currentStep={0} // First step
+      />
+    );
 
-    // Should show loading state
-    expect(screen.getByRole('button', { name: /Submit/i })).toBeDisabled();
+    // Try to click on a future step
+    const contextStepButton = screen.getByRole('button', { name: /Business Context/i });
+    await user.click(contextStepButton);
 
-    // Wait for submission to complete
-    await waitFor(() => {
-      expect(slowSubmit).toHaveBeenCalled();
-    });
+    // Should not navigate
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });

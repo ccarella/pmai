@@ -2,15 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AIEnhancementService } from '@/lib/services/ai-enhancement';
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/utils/rate-limit';
 import { IssueFormData } from '@/lib/types/issue';
+import { getDefaultEnhancements } from '@/lib/utils/default-enhancements';
 
 // Initialize AI service (singleton pattern)
 let aiService: AIEnhancementService | null = null;
 
-function getAIService(): AIEnhancementService {
+function getAIService(): AIEnhancementService | null {
   if (!aiService) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      throw new Error('OpenAI API key not configured');
+      // Return null if API key not configured - will use defaults
+      return null;
     }
     aiService = new AIEnhancementService(apiKey);
   }
@@ -34,14 +36,6 @@ function validateFormData(data: unknown): data is { formData: IssueFormData } {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if API key is configured
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'API key not configured. Please set OPENAI_API_KEY environment variable.' },
-        { status: 500 }
-      );
-    }
-
     // Check rate limit
     const rateLimitRequests = parseInt(process.env.RATE_LIMIT_REQUESTS_PER_HOUR || '20');
     const rateLimit = await checkRateLimit(request, rateLimitRequests);
@@ -74,6 +68,25 @@ export async function POST(request: NextRequest) {
 
     // Get AI service
     const service = getAIService();
+    
+    // If no service available (no API key), return default enhancements
+    if (!service) {
+      const defaultEnhancements = getDefaultEnhancements(formData.type);
+      return NextResponse.json(
+        {
+          enhancements: defaultEnhancements,
+          usage: {
+            totalTokens: 0,
+            requestCount: 0,
+            estimatedCost: 0,
+          },
+        },
+        {
+          status: 200,
+          headers: getRateLimitHeaders(rateLimit),
+        }
+      );
+    }
     
     // Check cost protection
     const usage = service.getUsageStats();
@@ -134,7 +147,7 @@ export async function GET(request: NextRequest) {
   const rateLimit = await checkRateLimit(request, rateLimitRequests);
   
   const service = getAIService();
-  const usage = service.getUsageStats();
+  const usage = service ? service.getUsageStats() : { totalTokens: 0, requestCount: 0, estimatedCost: 0 };
   const maxMonthlyCost = parseFloat(process.env.MAX_MONTHLY_COST_USD || '10');
   
   return NextResponse.json(
