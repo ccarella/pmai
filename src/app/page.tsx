@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8">
@@ -17,12 +19,12 @@ export default function Home() {
         </div>
 
         <div className="pt-8">
-          <a
+          <Link
             href="/create"
             className="inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 bg-blue-600 text-white hover:bg-blue-700 focus-visible:ring-blue-600 px-6 py-3 text-lg"
           >
             Create New Issue
-          </a>
+          </Link>
         </div>
 
         <div className="pt-16 text-sm text-gray-500">
