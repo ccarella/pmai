@@ -34,7 +34,7 @@ function validateFormData(data: unknown): data is { formData: IssueFormData } {
   );
 }
 
-export const POST = async (request: NextRequest) => {
+export async function POST(request: NextRequest) {
   try {
     // Check rate limit
     const rateLimitRequests = parseInt(process.env.RATE_LIMIT_REQUESTS_PER_HOUR || '20');
@@ -139,10 +139,10 @@ export const POST = async (request: NextRequest) => {
       { status: 500 }
     );
   }
-};
+}
 
 // Optional: GET endpoint for checking rate limit status
-export const GET = async (request: NextRequest) => {
+export async function GET(request: NextRequest) {
   const rateLimitRequests = parseInt(process.env.RATE_LIMIT_REQUESTS_PER_HOUR || '20');
   const rateLimit = await checkRateLimit(request, rateLimitRequests);
   
@@ -167,4 +167,4 @@ export const GET = async (request: NextRequest) => {
       headers: getRateLimitHeaders(rateLimit),
     }
   );
-};
+}
