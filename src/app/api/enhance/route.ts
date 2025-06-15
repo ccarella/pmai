@@ -17,6 +17,7 @@ function getAIService(): AIEnhancementService | null {
     aiService = new AIEnhancementService(apiKey);
   }
   return aiService;
+}
 
 // Validate form data
 function validateFormData(data: unknown): data is { formData: IssueFormData } {
@@ -35,14 +36,6 @@ function validateFormData(data: unknown): data is { formData: IssueFormData } {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if API key is configured
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'API key not configured. Please set OPENAI_API_KEY environment variable.' },
-        { status: 500 }
-      );
-    }
-
     // Check rate limit
     const rateLimitRequests = parseInt(process.env.RATE_LIMIT_REQUESTS_PER_HOUR || '20');
     const rateLimit = await checkRateLimit(request, rateLimitRequests);
@@ -154,7 +147,7 @@ export async function GET(request: NextRequest) {
   const rateLimit = await checkRateLimit(request, rateLimitRequests);
   
   const service = getAIService();
-  const usage = service.getUsageStats();
+  const usage = service ? service.getUsageStats() : { totalTokens: 0, requestCount: 0, estimatedCost: 0 };
   const maxMonthlyCost = parseFloat(process.env.MAX_MONTHLY_COST_USD || '10');
   
   return NextResponse.json(
