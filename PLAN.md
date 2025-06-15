@@ -61,9 +61,9 @@ src/
 ├── components/
 │   ├── ui/
 │   │   ├── Button.tsx ✅
-│   │   ├── Card.tsx
-│   │   ├── Input.tsx
-│   │   ├── Textarea.tsx
+│   │   ├── Card.tsx ✅
+│   │   ├── Input.tsx ✅
+│   │   ├── Textarea.tsx ✅
 │   │   └── index.ts ✅
 │   ├── forms/
 │   │   ├── IssueTypeSelector.tsx
@@ -185,7 +185,7 @@ export const bugTechnicalSchema = z.object({
 
 ### Phase 2: Core UI Components (Week 1-2)
 
-#### 2.1 Design System Components
+#### 2.1 Design System Components ✅
 
 **Button Component (TDD Example)** ✅
 ```typescript
@@ -229,6 +229,10 @@ export const Button: React.FC<ButtonProps> = ({
   // Implementation after tests
 };
 ```
+
+**Card Component** ✅
+**Input Component** ✅  
+**Textarea Component** ✅
 
 #### 2.2 Form Components
 
