@@ -28,7 +28,7 @@ const issueTypeOptions: IssueTypeOption[] = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
       </svg>
     ),
-    color: 'text-blue-600'
+    color: 'text-info'
   },
   {
     type: 'bug',
@@ -39,7 +39,7 @@ const issueTypeOptions: IssueTypeOption[] = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
-    color: 'text-red-600'
+    color: 'text-error'
   },
   {
     type: 'epic',
@@ -50,7 +50,7 @@ const issueTypeOptions: IssueTypeOption[] = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
       </svg>
     ),
-    color: 'text-purple-600'
+    color: 'text-accent'
   },
   {
     type: 'technical-debt',
@@ -61,7 +61,7 @@ const issueTypeOptions: IssueTypeOption[] = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
       </svg>
     ),
-    color: 'text-amber-600'
+    color: 'text-warning'
   }
 ];
 
@@ -101,15 +101,15 @@ export const IssueTypeSelector: React.FC<IssueTypeSelectorProps> = ({
             aria-describedby={descriptionId}
             className={`
               text-left w-full transition-all duration-200 rounded-lg
-              ${isSelected ? 'ring-2 ring-blue-500' : ''}
+              ${isSelected ? 'ring-2 ring-accent' : ''}
             `}
           >
             <Card
               variant="bordered"
               className={`
                 h-full cursor-pointer transition-all duration-200
-                hover:border-blue-500 hover:shadow-md
-                ${isSelected ? 'border-blue-500 bg-blue-50' : ''}
+                hover:border-accent hover:shadow-md
+                ${isSelected ? 'border-accent bg-accent/10' : ''}
               `}
             >
               <div className="flex items-start space-x-3">
@@ -117,12 +117,12 @@ export const IssueTypeSelector: React.FC<IssueTypeSelectorProps> = ({
                   {option.icon}
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-foreground">
                     {option.title}
                   </h3>
                   <p 
                     id={descriptionId}
-                    className="mt-1 text-sm text-gray-600"
+                    className="mt-1 text-sm text-muted"
                   >
                     {option.description}
                   </p>

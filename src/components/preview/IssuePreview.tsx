@@ -49,19 +49,19 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
     <div className="space-y-6">
       <Card>
         <div className="p-6">
-          <h2 className="text-2xl font-bold mb-4">Preview Your Issue</h2>
+          <h2 className="text-2xl font-bold mb-4 text-foreground">Preview Your Issue</h2>
           
           {isLoading && (
             <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="mt-2 text-gray-600">Enhancing your issue with AI...</p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+              <p className="mt-2 text-muted">Enhancing your issue with AI...</p>
             </div>
           )}
           
           {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-red-800">Failed to enhance issue: {error}</p>
-              <p className="text-sm text-red-600 mt-1">Using default template instead.</p>
+            <div className="mb-4 p-4 bg-error/10 border border-error/30 rounded-md">
+              <p className="text-error font-medium">Failed to enhance issue: {error}</p>
+              <p className="text-sm text-error/80 mt-1">Using default template instead.</p>
             </div>
           )}
           
@@ -70,28 +70,28 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
               <div className="flex space-x-4 mb-4">
                 <button
                   onClick={() => setActiveTab('markdown')}
-                  className={`px-4 py-2 font-medium rounded-md ${
+                  className={`px-4 py-2 font-medium rounded-md transition-all duration-200 ${
                     activeTab === 'markdown'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-accent text-foreground shadow-sm'
+                      : 'text-muted hover:text-foreground hover:bg-card-bg'
                   }`}
                 >
                   GitHub Issue
                 </button>
                 <button
                   onClick={() => setActiveTab('claude')}
-                  className={`px-4 py-2 font-medium rounded-md ${
+                  className={`px-4 py-2 font-medium rounded-md transition-all duration-200 ${
                     activeTab === 'claude'
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:text-gray-900'
+                      ? 'bg-accent text-foreground shadow-sm'
+                      : 'text-muted hover:text-foreground hover:bg-card-bg'
                   }`}
                 >
                   Claude Prompt
                 </button>
               </div>
               
-              <div className="bg-gray-50 rounded-md p-4 max-h-96 overflow-y-auto">
-                <pre className="whitespace-pre-wrap text-sm font-mono">
+              <div className="bg-input-bg border border-border rounded-md p-4 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-card-bg">
+                <pre className="whitespace-pre-wrap text-sm font-mono text-foreground">
                   {activeTab === 'markdown' ? markdown : claudePrompt}
                 </pre>
               </div>
@@ -117,27 +117,30 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
       {enhancements && (
         <Card>
           <div className="p-6">
-            <h3 className="font-semibold mb-3">AI Enhancements</h3>
+            <h3 className="font-semibold mb-3 text-foreground flex items-center gap-2">
+              <span className="w-2 h-2 bg-success rounded-full animate-pulse"></span>
+              AI Enhancements
+            </h3>
             <div className="space-y-3 text-sm">
               <div>
-                <h4 className="font-medium text-gray-700">Acceptance Criteria:</h4>
-                <ul className="list-disc list-inside ml-2 text-gray-600">
+                <h4 className="font-medium text-accent">Acceptance Criteria:</h4>
+                <ul className="list-disc list-inside ml-2 text-muted">
                   {enhancements.acceptanceCriteria.map((ac: string, i: number) => (
                     <li key={i}>{ac}</li>
                   ))}
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-gray-700">Edge Cases:</h4>
-                <ul className="list-disc list-inside ml-2 text-gray-600">
+                <h4 className="font-medium text-accent">Edge Cases:</h4>
+                <ul className="list-disc list-inside ml-2 text-muted">
                   {enhancements.edgeCases.map((ec: string, i: number) => (
                     <li key={i}>{ec}</li>
                   ))}
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-gray-700">Technical Considerations:</h4>
-                <ul className="list-disc list-inside ml-2 text-gray-600">
+                <h4 className="font-medium text-accent">Technical Considerations:</h4>
+                <ul className="list-disc list-inside ml-2 text-muted">
                   {enhancements.technicalConsiderations.map((tc: string, i: number) => (
                     <li key={i}>{tc}</li>
                   ))}

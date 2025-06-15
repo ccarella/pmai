@@ -58,8 +58,8 @@ describe('StepIndicator', () => {
     render(<StepIndicator steps={mockSteps} currentStep={1} />);
     
     const currentStepElement = screen.getByTestId('step-1');
-    expect(currentStepElement).toHaveClass('text-blue-600');
-    expect(currentStepElement.querySelector('[data-testid="step-circle-1"]')).toHaveClass('bg-blue-600');
+    expect(currentStepElement).toHaveClass('text-accent');
+    expect(currentStepElement.querySelector('[data-testid="step-circle-1"]')).toHaveClass('bg-accent');
   });
 
   it('shows completed steps with checkmarks', () => {
@@ -78,10 +78,10 @@ describe('StepIndicator', () => {
     render(<StepIndicator steps={mockSteps} currentStep={1} />);
     
     const futureStep = screen.getByTestId('step-2');
-    expect(futureStep).toHaveClass('text-gray-400');
+    expect(futureStep).toHaveClass('text-muted');
     
     const futureStepCircle = futureStep.querySelector('[data-testid="step-circle-2"]');
-    expect(futureStepCircle).toHaveClass('bg-gray-200');
+    expect(futureStepCircle).toHaveClass('bg-card-bg');
   });
 
   it('renders connecting lines between steps', () => {
@@ -96,11 +96,11 @@ describe('StepIndicator', () => {
     render(<StepIndicator steps={mockSteps} currentStep={2} />);
     
     // Connectors 0 and 1 should be completed
-    expect(screen.getByTestId('connector-0')).toHaveClass('bg-blue-600');
-    expect(screen.getByTestId('connector-1')).toHaveClass('bg-blue-600');
+    expect(screen.getByTestId('connector-0')).toHaveClass('bg-gradient-to-r');
+    expect(screen.getByTestId('connector-1')).toHaveClass('bg-gradient-to-r');
     
     // Connector 2 should not be completed
-    expect(screen.getByTestId('connector-2')).toHaveClass('bg-gray-200');
+    expect(screen.getByTestId('connector-2')).toHaveClass('bg-border');
   });
 
   it('handles click events when onStepClick is provided', async () => {

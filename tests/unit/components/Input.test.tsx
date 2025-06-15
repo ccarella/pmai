@@ -44,7 +44,7 @@ describe('Input', () => {
     
     expect(screen.getByText('Email is required')).toBeInTheDocument();
     const input = screen.getByLabelText('Email');
-    expect(input).toHaveClass('border-red-500');
+    expect(input).toHaveClass('border-error');
   });
 
   it('shows required indicator', () => {
@@ -68,7 +68,7 @@ describe('Input', () => {
     render(<Input name="email" label="Email" disabled />);
     const input = screen.getByLabelText('Email');
     expect(input).toBeDisabled();
-    expect(input).toHaveClass('bg-gray-50', 'cursor-not-allowed');
+    expect(input).toHaveClass('opacity-50', 'cursor-not-allowed');
   });
 
   it('supports different input types', () => {

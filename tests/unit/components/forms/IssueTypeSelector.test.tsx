@@ -64,7 +64,7 @@ describe('IssueTypeSelector', () => {
     const featureCard = featureButton.querySelector('.cursor-pointer');
     
     expect(featureCard).toBeTruthy();
-    expect(featureCard).toHaveClass('hover:border-blue-500');
+    expect(featureCard).toHaveClass('hover:border-accent');
   });
 
   it('is keyboard accessible', async () => {
@@ -120,7 +120,7 @@ describe('IssueTypeSelector', () => {
     render(<IssueTypeSelector onSelect={mockOnSelect} value="feature" />);
     
     const featureCard = screen.getByTestId('issue-type-feature');
-    expect(featureCard).toHaveClass('ring-2', 'ring-blue-500');
+    expect(featureCard).toHaveClass('ring-2', 'ring-accent');
     
     const bugCard = screen.getByTestId('issue-type-bug');
     expect(bugCard).not.toHaveClass('ring-2');

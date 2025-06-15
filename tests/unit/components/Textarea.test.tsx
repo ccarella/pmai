@@ -44,7 +44,7 @@ describe('Textarea', () => {
     
     expect(screen.getByText('Description is required')).toBeInTheDocument();
     const textarea = screen.getByLabelText('Description');
-    expect(textarea).toHaveClass('border-red-500');
+    expect(textarea).toHaveClass('border-error');
   });
 
   it('shows required indicator', () => {
@@ -68,7 +68,7 @@ describe('Textarea', () => {
     render(<Textarea name="description" label="Description" disabled />);
     const textarea = screen.getByLabelText('Description');
     expect(textarea).toBeDisabled();
-    expect(textarea).toHaveClass('bg-gray-50', 'cursor-not-allowed');
+    expect(textarea).toHaveClass('opacity-50', 'cursor-not-allowed');
   });
 
   it('applies rows attribute', () => {

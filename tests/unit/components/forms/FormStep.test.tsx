@@ -181,8 +181,9 @@ describe('FormStep', () => {
     });
 
     // Check if error messages are present
-    const titleError = await screen.findByText('Title is required');
-    expect(titleError).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Title is required')).toBeInTheDocument();
+    });
   });
 
   it('calls onNext with form data when validation passes', async () => {

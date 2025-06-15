@@ -205,8 +205,8 @@ describe('ProgressiveForm', () => {
 
     // Should show validation errors
     await waitFor(() => {
-      expect(screen.getByText('Title is required')).toBeInTheDocument();
-      expect(screen.getByText('Description is required')).toBeInTheDocument();
+      expect(screen.getByText('String must contain at least 10 character(s)')).toBeInTheDocument();
+      expect(screen.getByText('String must contain at least 50 character(s)')).toBeInTheDocument();
     });
     
     // Should not navigate
@@ -286,14 +286,14 @@ describe('ProgressiveForm', () => {
       />
     );
 
-    await user.type(screen.getByRole('textbox', { name: /title/i }), 'Test Title');
-    await user.type(screen.getByRole('textbox', { name: /description/i }), 'Test Description');
+    await user.type(screen.getByRole('textbox', { name: /title/i }), 'Test Title with enough characters');
+    await user.type(screen.getByRole('textbox', { name: /description/i }), 'Test Description that is long enough to meet the 50 character minimum validation requirement');
     await user.click(screen.getByRole('button', { name: /Next/i }));
 
     await waitFor(() => {
       expect(mockUpdateFormData).toHaveBeenCalledWith({
-        title: 'Test Title',
-        description: 'Test Description',
+        title: 'Test Title with enough characters',
+        description: 'Test Description that is long enough to meet the 50 character minimum validation requirement',
       });
     });
   });

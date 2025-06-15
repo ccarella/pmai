@@ -64,9 +64,9 @@ export const StepIndicator: React.FC<StepIndicatorProps> = ({
               className={`
                 flex items-center ${index < steps.length - 1 ? 'flex-1' : ''}
                 ${isClickable ? 'cursor-pointer' : 'cursor-not-allowed'}
-                ${status === 'completed' ? 'text-blue-600' : ''}
-                ${status === 'current' ? 'text-blue-600' : ''}
-                ${status === 'future' ? 'text-gray-400' : ''}
+                ${status === 'completed' ? 'text-accent' : ''}
+                ${status === 'current' ? 'text-accent' : ''}
+                ${status === 'future' ? 'text-muted' : ''}
               `}
               data-testid={`step-${index}`}
             >
@@ -79,10 +79,10 @@ export const StepIndicator: React.FC<StepIndicatorProps> = ({
                 className={`
                   flex items-center relative
                   ${isClickable ? 'cursor-pointer' : 'cursor-not-allowed'}
-                  ${status === 'completed' ? 'text-blue-600' : ''}
-                  ${status === 'current' ? 'text-blue-600' : ''}
-                  ${status === 'future' ? 'text-gray-400' : ''}
-                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-lg
+                  ${status === 'completed' ? 'text-accent' : ''}
+                  ${status === 'current' ? 'text-accent' : ''}
+                  ${status === 'future' ? 'text-muted' : ''}
+                  focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent rounded-lg
                 `}
               >
                 {/* Step circle */}
@@ -92,9 +92,9 @@ export const StepIndicator: React.FC<StepIndicatorProps> = ({
                     className={`
                       w-10 h-10 rounded-full flex items-center justify-center
                       transition-colors duration-200
-                      ${status === 'completed' ? 'bg-blue-600 text-white' : ''}
-                      ${status === 'current' ? 'bg-blue-600 text-white' : ''}
-                      ${status === 'future' ? 'bg-gray-200 text-gray-500' : ''}
+                      ${status === 'completed' ? 'bg-accent text-foreground' : ''}
+                      ${status === 'current' ? 'bg-accent text-foreground ring-2 ring-accent/30' : ''}
+                      ${status === 'future' ? 'bg-card-bg text-muted border-2 border-border' : ''}
                     `}
                   >
                     {status === 'completed' ? (
@@ -121,7 +121,7 @@ export const StepIndicator: React.FC<StepIndicatorProps> = ({
                       {step.title}
                     </p>
                     {!compact && step.description && (
-                      <p className="text-xs text-gray-500 mt-0.5 hidden lg:block">
+                      <p className="text-xs text-muted mt-0.5 hidden lg:block">
                         {step.description}
                       </p>
                     )}
@@ -135,7 +135,7 @@ export const StepIndicator: React.FC<StepIndicatorProps> = ({
                   data-testid={`connector-${index}`}
                   className={`
                     flex-1 h-1 mx-4 transition-colors duration-200
-                    ${index < currentStep ? 'bg-blue-600' : 'bg-gray-200'}
+                    ${index < currentStep ? 'bg-gradient-to-r from-accent to-secondary' : 'bg-border'}
                   `}
                 />
               )}
