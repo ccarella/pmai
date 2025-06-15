@@ -238,25 +238,19 @@ export function isFormComplete(type: IssueType, formData: Partial<IssueFormData>
     // Validate context
     const contextStep = steps.find(s => s.id === 'context');
     if (contextStep) {
-      contextStep.validation.parse({
-        context: formData.context,
-      });
+      contextStep.validation.parse(formData.context);
     }
     
     // Validate technical based on type
     const technicalStep = steps.find(s => s.id === 'technical');
     if (technicalStep) {
-      technicalStep.validation.parse({
-        technical: formData.technical,
-      });
+      technicalStep.validation.parse(formData.technical);
     }
     
     // Validate implementation
     const implementationStep = steps.find(s => s.id === 'implementation');
     if (implementationStep) {
-      implementationStep.validation.parse({
-        implementation: formData.implementation,
-      });
+      implementationStep.validation.parse(formData.implementation);
     }
     
     return true;

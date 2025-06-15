@@ -57,7 +57,7 @@ export const FormStep: React.FC<FormStepProps> = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(step.validation as any),
     defaultValues: getInitialValues(),
-    mode: 'onSubmit',
+    mode: 'onTouched',
   });
 
   const onSubmit = useCallback(async (formData: Record<string, unknown>) => {

@@ -145,6 +145,7 @@ describe('form-steps', () => {
           stepsToReproduce: 'Steps to reproduce the bug in detail', // 36 chars > 20 min
           expectedBehavior: 'Expected behavior description', // 30 chars > 10 min
           actualBehavior: 'Actual behavior observed', // 24 chars > 10 min
+          components: ['Component1'], // Required for bugs too
         },
         implementation: {
           requirements: 'Requirements for the fix', // 24 chars > 10 min

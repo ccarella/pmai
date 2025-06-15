@@ -9,11 +9,24 @@ const localStorageMock = {
   removeItem: jest.fn(),
   clear: jest.fn(),
 };
-global.localStorage = localStorageMock as any;
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+  writable: true,
+});
+
+// Mock console.error
+const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
 describe('FormProvider', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    consoleErrorSpy.mockClear();
+    localStorageMock.getItem.mockReturnValue(null);
+  });
+
+  afterAll(() => {
+    consoleErrorSpy.mockRestore();
   });
 
   const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -27,17 +40,20 @@ describe('FormProvider', () => {
     expect(result.current.isDataLoaded).toBe(true);
   });
 
-  it('loads data from localStorage on mount', () => {
+  it('loads data from localStorage on mount', async () => {
     const storedData = {
       type: 'feature',
       title: 'Stored Title',
       description: 'Stored Description',
     };
-    localStorageMock.getItem.mockReturnValue(JSON.stringify(storedData));
+    localStorageMock.getItem.mockReturnValueOnce(JSON.stringify(storedData));
 
     const { result } = renderHook(() => useFormContext(), { wrapper });
 
-    expect(result.current.isDataLoaded).toBe(true);
+    await waitFor(() => {
+      expect(result.current.isDataLoaded).toBe(true);
+    });
+    
     expect(localStorageMock.getItem).toHaveBeenCalledWith('pmai_form_data');
     expect(result.current.formData).toEqual(storedData);
   });
@@ -84,8 +100,13 @@ describe('FormProvider', () => {
     });
   });
 
-  it('saves to localStorage when data changes', () => {
+  it('saves to localStorage when data changes', async () => {
     const { result } = renderHook(() => useFormContext(), { wrapper });
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(result.current.isDataLoaded).toBe(true);
+    });
 
     act(() => {
       result.current.updateFormData({
@@ -94,16 +115,18 @@ describe('FormProvider', () => {
       });
     });
 
-    // The setItem is called after the state update
+    // Wait for the save to localStorage
+    await waitFor(() => {
+      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+        'pmai_form_data',
+        expect.stringContaining('"type":"feature"')
+      );
+    });
+
     expect(result.current.formData).toMatchObject({
       type: 'feature',
       title: 'New Feature',
     });
-    
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'pmai_form_data',
-      expect.stringContaining('"type":"feature"')
-    );
   });
 
   it('resets form data and clears localStorage', () => {
@@ -126,7 +149,6 @@ describe('FormProvider', () => {
 
   it('handles invalid JSON in localStorage gracefully', async () => {
     localStorageMock.getItem.mockReturnValueOnce('invalid json');
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
     const { result } = renderHook(() => useFormContext(), { wrapper });
 
@@ -135,22 +157,16 @@ describe('FormProvider', () => {
     });
 
     expect(result.current.formData).toEqual({});
-    expect(consoleSpy).toHaveBeenCalledWith(
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Failed to parse stored form data:',
       expect.any(Error)
     );
-
-    consoleSpy.mockRestore();
   });
 
   it('throws error when used outside provider', () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-
     expect(() => {
       renderHook(() => useFormContext());
     }).toThrow('useFormContext must be used within FormProvider');
-
-    consoleSpy.mockRestore();
   });
 
   it('handles array values correctly', () => {
