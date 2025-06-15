@@ -18,6 +18,9 @@ npm run build
 # Start production server
 npm run start
 
+# Run test
+npm test
+
 # Run linting
 npm run lint
 ```
