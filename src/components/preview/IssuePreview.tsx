@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { useAIEnhancement } from '@/lib/hooks/useAIEnhancement';
 import { generateMarkdown } from '@/lib/templates/markdown';
 import { generateClaudePrompt } from '@/lib/templates/claude-prompt';
+import { PublishButton } from '@/components/PublishButton';
 
 interface IssuePreviewProps {
   formData: Partial<IssueFormData>;
@@ -17,7 +18,6 @@ interface IssuePreviewProps {
 export const IssuePreview: React.FC<IssuePreviewProps> = ({
   formData,
   onEdit,
-  onSubmit,
 }) => {
   const [activeTab, setActiveTab] = useState<'markdown' | 'claude'>('markdown');
   const [copied, setCopied] = useState(false);
@@ -100,13 +100,21 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
                 <Button variant="secondary" onClick={onEdit}>
                   Edit
                 </Button>
-                <div className="space-x-3">
+                <div className="flex items-center space-x-3">
                   <Button variant="secondary" onClick={handleCopy}>
                     {copied ? 'Copied!' : 'Copy to Clipboard'}
                   </Button>
-                  <Button onClick={onSubmit}>
-                    Create Issue
-                  </Button>
+                  <PublishButton
+                    title={enhancedData.title || ''}
+                    body={markdown}
+                    labels={[enhancedData.type || 'enhancement']}
+                    onSuccess={(issueUrl) => {
+                      console.log('Issue published:', issueUrl);
+                    }}
+                    onError={(error) => {
+                      console.error('Failed to publish:', error);
+                    }}
+                  />
                 </div>
               </div>
             </>
