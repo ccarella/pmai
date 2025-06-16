@@ -7,11 +7,14 @@ import { z } from 'zod';
 let aiService: AIEnhancementService | null = null;
 
 function getAIService(): AIEnhancementService | null {
+  // Reset singleton if API key changes (useful for tests)
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    aiService = null;
+    return null;
+  }
+  
   if (!aiService) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      return null;
-    }
     aiService = new AIEnhancementService(apiKey);
   }
   return aiService;
@@ -24,6 +27,7 @@ const createIssueSchema = z.object({
 });
 
 interface SmartPromptAIEnhancements {
+  original: string;
   markdown: string;
   claudePrompt: string;
   summary: {
@@ -78,7 +82,10 @@ export async function POST(request: NextRequest) {
     if (!service) {
       const basicResponse = generateBasicIssue(processedData);
       return NextResponse.json(
-        basicResponse,
+        {
+          ...basicResponse,
+          original: processedData.prompt,
+        },
         {
           status: 200,
           headers: getRateLimitHeaders(rateLimit),
@@ -109,6 +116,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         ...enhanced,
+        original: processedData.prompt,
         usage: updatedUsage,
       },
       {
@@ -140,20 +148,101 @@ async function generateEnhancedIssue(
 ): Promise<SmartPromptAIEnhancements> {
   try {
     // Create a comprehensive prompt for the AI to analyze and structure
-    const systemPrompt = `You are an expert at creating comprehensive GitHub issues from user prompts. 
-    Your task is to analyze the user's prompt and create:
-    1. A complete GitHub issue in markdown format
-    2. A Claude Code-optimized prompt for developers
-    3. A summary with type classification, priority, and effort estimate
+    const systemPrompt = `# Transform User Input into Claude Code-Optimized GitHub Issue
 
-    The GitHub issue should include:
-    - Clear title and description
-    - User story format where applicable
-    - Acceptance criteria
-    - Technical considerations
-    - Implementation notes
+You are an expert at creating clear, actionable GitHub issues specifically formatted to work effectively with Claude Code. Your task is to transform raw user input into a well-structured issue that Claude Code can execute successfully.
 
-    Respond in JSON format with keys: markdown, claudePrompt, and summary (with type, priority, estimatedEffort).`;
+Your response must be in JSON format with these keys:
+- markdown: The complete GitHub issue in markdown format
+- claudePrompt: The Claude Code-optimized prompt
+- summary: An object with type, priority, and estimatedEffort
+
+Extract all relevant details from the user's description and structure them for maximum clarity and actionability.
+
+## GitHub Issue Template
+
+### Title
+[Use the provided title or create a concise, action-oriented title starting with a verb]
+
+### Overview
+[Provide a clear, 2-3 sentence summary of what needs to be accomplished]
+
+### Context
+[Extract and organize any background information, current state, or problem description from the user's input]
+
+### Requirements
+[List specific, actionable requirements extracted or inferred from the description]
+- [ ] Requirement 1
+- [ ] Requirement 2
+- [ ] Requirement 3
+[Add more as needed]
+
+### Technical Specifications
+[Include any technical details mentioned or reasonably inferred]
+- **Framework**: [NextJS/React/etc. if mentioned]
+- **UI Library**: [shadcn/ui, Tailwind, etc. if mentioned]
+- **Key Dependencies**: [List any mentioned libraries or tools]
+- **API Endpoints**: [If relevant]
+- **Data Structures**: [If relevant]
+
+### Implementation Guide
+[Provide a step-by-step approach for Claude Code]
+1. [First logical step]
+2. [Second step]
+3. [Continue with clear, sequential steps]
+
+### Acceptance Criteria
+[Define clear, testable criteria for completion]
+- [ ] [Specific, measurable outcome 1]
+- [ ] [Specific, measurable outcome 2]
+- [ ] [User-facing feature or behavior]
+- [ ] All tests pass
+- [ ] Code follows project conventions
+
+### Code Structure
+\`\`\`
+[Suggest file structure if relevant]
+/components/[ComponentName].tsx
+/lib/[utility].ts
+/app/[route]/page.tsx
+\`\`\`
+
+### Example Usage
+[If applicable, provide a usage example or user flow]
+\`\`\`typescript
+// Example code snippet or usage pattern
+\`\`\`
+
+### Additional Notes
+[Include any constraints, design preferences, or special considerations]
+- Design should follow modern minimalist principles
+- Ensure accessibility compliance
+- [Other relevant notes from the description]
+
+### Definition of Done
+- [ ] Feature is fully implemented and functional
+- [ ] Code is clean, commented, and follows best practices
+- [ ] Tests are written and passing
+- [ ] Documentation is updated if needed
+- [ ] Feature works in development environment
+
+---
+*This issue is formatted for optimal use with Claude Code. Each section provides clear context and actionable steps for implementation.*
+
+## Formatting Guidelines
+
+When creating the issue:
+
+1. **Be Specific**: Transform vague requests into concrete, actionable tasks
+2. **Add Structure**: Even if the user provides a stream of consciousness, organize it logically
+3. **Infer Smartly**: If the user mentions they're building a "form", infer they'll need validation, error handling, and success states
+4. **Technical Context**: If they mention specific technologies (NextJS, Vercel, etc.), incorporate relevant best practices
+5. **Claude Code Optimization**: 
+   - Use clear, imperative language
+   - Break complex tasks into steps
+   - Provide file paths and structure
+   - Include example code when helpful
+   - Make acceptance criteria testable`;
 
     const userPrompt = `Title: ${data.title}
 
@@ -191,6 +280,7 @@ Please analyze this and create a comprehensive GitHub issue with all necessary s
 
     const parsed = JSON.parse(response);
     return {
+      original: data.prompt,
       markdown: parsed.markdown || generateBasicMarkdown(data),
       claudePrompt: parsed.claudePrompt || generateBasicClaudePrompt(data),
       summary: {
@@ -207,6 +297,7 @@ Please analyze this and create a comprehensive GitHub issue with all necessary s
 
 function generateBasicIssue(data: { title: string; prompt: string }): SmartPromptAIEnhancements {
   return {
+    original: data.prompt,
     markdown: generateBasicMarkdown(data),
     claudePrompt: generateBasicClaudePrompt(data),
     summary: {

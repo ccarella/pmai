@@ -1,18 +1,16 @@
 import {
   baseIssueSchema,
   contextSchema,
-  featureTechnicalSchema,
-  bugTechnicalSchema,
-  epicTechnicalSchema,
-  technicalDebtSchema,
   implementationSchema,
+  smartPromptSchema,
+  validateSmartPrompt,
 } from '@/lib/utils/validation';
 
 describe('Validation Schemas', () => {
   describe('baseIssueSchema', () => {
     it('validates valid base issue data', () => {
       const validData = {
-        type: 'feature',
+        type: 'feature' as const,
         title: 'Add user authentication system',
         description: 'We need to implement a secure user authentication system that supports email/password login, social auth, and two-factor authentication.',
       };
@@ -34,7 +32,7 @@ describe('Validation Schemas', () => {
 
     it('rejects title that is too short', () => {
       const invalidData = {
-        type: 'feature',
+        type: 'feature' as const,
         title: 'Too short',
         description: 'We need to implement a secure user authentication system that supports email/password login, social auth, and two-factor authentication.',
       };
@@ -45,8 +43,8 @@ describe('Validation Schemas', () => {
 
     it('rejects title that is too long', () => {
       const invalidData = {
-        type: 'feature',
-        title: 'A'.repeat(101),
+        type: 'feature' as const,
+        title: 'a'.repeat(101),
         description: 'We need to implement a secure user authentication system that supports email/password login, social auth, and two-factor authentication.',
       };
       
@@ -56,9 +54,9 @@ describe('Validation Schemas', () => {
 
     it('rejects description that is too short', () => {
       const invalidData = {
-        type: 'feature',
+        type: 'feature' as const,
         title: 'Add user authentication system',
-        description: 'Too short description',
+        description: 'Too short',
       };
       
       const result = baseIssueSchema.safeParse(invalidData);
@@ -67,32 +65,48 @@ describe('Validation Schemas', () => {
 
     it('rejects description that is too long', () => {
       const invalidData = {
-        type: 'feature',
+        type: 'feature' as const,
         title: 'Add user authentication system',
-        description: 'A'.repeat(1001),
+        description: 'a'.repeat(1001),
       };
       
       const result = baseIssueSchema.safeParse(invalidData);
       expect(result.success).toBe(false);
+    });
+
+    it('accepts all valid issue types', () => {
+      const types = ['feature', 'bug', 'epic', 'technical-debt'] as const;
+      const description = 'We need to implement a secure user authentication system that supports email/password login, social auth, and two-factor authentication.';
+      
+      types.forEach((type) => {
+        const validData = {
+          type,
+          title: 'Add user authentication system',
+          description,
+        };
+        
+        const result = baseIssueSchema.safeParse(validData);
+        expect(result.success).toBe(true);
+      });
     });
   });
 
   describe('contextSchema', () => {
     it('validates valid context data', () => {
       const validData = {
-        businessValue: 'This feature will improve user retention by 30% based on market research',
-        targetUsers: 'All registered users of the platform',
-        successCriteria: 'Users can successfully authenticate and access protected resources',
+        businessValue: 'Increase user retention by 20%',
+        targetUsers: 'All registered users',
+        successCriteria: 'Users can successfully authenticate and access their accounts',
       };
       
       const result = contextSchema.safeParse(validData);
       expect(result.success).toBe(true);
     });
 
-    it('allows optional successCriteria', () => {
+    it('validates context data without optional successCriteria', () => {
       const validData = {
-        businessValue: 'This feature will improve user retention by 30% based on market research',
-        targetUsers: 'All registered users of the platform',
+        businessValue: 'Increase user retention by 20%',
+        targetUsers: 'All registered users',
       };
       
       const result = contextSchema.safeParse(validData);
@@ -102,7 +116,7 @@ describe('Validation Schemas', () => {
     it('rejects businessValue that is too short', () => {
       const invalidData = {
         businessValue: 'ab',
-        targetUsers: 'All registered users of the platform',
+        targetUsers: 'All registered users',
       };
       
       const result = contextSchema.safeParse(invalidData);
@@ -111,7 +125,7 @@ describe('Validation Schemas', () => {
 
     it('rejects targetUsers that is too short', () => {
       const invalidData = {
-        businessValue: 'This feature will improve user retention by 30% based on market research',
+        businessValue: 'Increase user retention by 20%',
         targetUsers: 'ab',
       };
       
@@ -120,164 +134,114 @@ describe('Validation Schemas', () => {
     });
   });
 
-  describe('featureTechnicalSchema', () => {
-    it('validates valid feature technical data', () => {
+  describe('smartPromptSchema', () => {
+    it('validates valid smart prompt data', () => {
       const validData = {
-        components: ['AuthProvider', 'LoginForm', 'UserProfile'],
+        title: 'Add user authentication',
+        prompt: 'We need to implement a secure user authentication system',
       };
       
-      const result = featureTechnicalSchema.safeParse(validData);
+      const result = smartPromptSchema.safeParse(validData);
       expect(result.success).toBe(true);
     });
 
-    it('rejects empty components array', () => {
-      const invalidData = {
-        components: [],
+    it('validates prompt without title', () => {
+      const validData = {
+        prompt: 'We need to implement a secure user authentication system',
       };
       
-      const result = featureTechnicalSchema.safeParse(invalidData);
+      const result = smartPromptSchema.safeParse(validData);
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects title longer than 70 characters', () => {
+      const invalidData = {
+        title: 'a'.repeat(71),
+        prompt: 'Test prompt',
+      };
+      
+      const result = smartPromptSchema.safeParse(invalidData);
       expect(result.success).toBe(false);
     });
 
-    it('rejects missing components field', () => {
-      const invalidData = {};
+    it('rejects empty prompt', () => {
+      const invalidData = {
+        prompt: '',
+      };
       
-      const result = featureTechnicalSchema.safeParse(invalidData);
+      const result = smartPromptSchema.safeParse(invalidData);
       expect(result.success).toBe(false);
     });
   });
 
-  describe('bugTechnicalSchema', () => {
-    it('validates valid bug technical data', () => {
-      const validData = {
-        stepsToReproduce: '1. Navigate to login page\n2. Enter invalid credentials\n3. Click submit',
-        expectedBehavior: 'Error message should appear',
-        actualBehavior: 'Page crashes with white screen',
+  describe('validateSmartPrompt', () => {
+    it('validates and processes valid data with title', () => {
+      const data = {
+        title: 'Add user authentication',
+        prompt: 'We need to implement a secure user authentication system',
       };
       
-      const result = bugTechnicalSchema.safeParse(validData);
-      expect(result.success).toBe(true);
+      const result = validateSmartPrompt(data);
+      expect(result.title).toBe('Add user authentication');
+      expect(result.prompt).toBe('We need to implement a secure user authentication system');
     });
 
-    it('rejects stepsToReproduce that is too short', () => {
-      const invalidData = {
-        stepsToReproduce: 'Too short',
-        expectedBehavior: 'Error message should appear',
-        actualBehavior: 'Page crashes with white screen',
+    it('uses prompt excerpt as title when title not provided', () => {
+      const data = {
+        prompt: 'We need to implement a secure user authentication system that supports multiple providers',
       };
       
-      const result = bugTechnicalSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
+      const result = validateSmartPrompt(data);
+      expect(result.title).toBe('We need to implement a secure user authentication system tha');
+      expect(result.prompt).toBe('We need to implement a secure user authentication system that supports multiple providers');
     });
 
-    it('rejects expectedBehavior that is too short', () => {
-      const invalidData = {
-        stepsToReproduce: '1. Navigate to login page\n2. Enter invalid credentials\n3. Click submit',
-        expectedBehavior: 'Short',
-        actualBehavior: 'Page crashes with white screen',
+    it('throws error for title less than 5 characters', () => {
+      const data = {
+        title: 'Test',
+        prompt: 'Test prompt',
       };
       
-      const result = bugTechnicalSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
+      expect(() => validateSmartPrompt(data)).toThrow('Title must be between 5 and 70 characters');
     });
 
-    it('rejects actualBehavior that is too short', () => {
-      const invalidData = {
-        stepsToReproduce: '1. Navigate to login page\n2. Enter invalid credentials\n3. Click submit',
-        expectedBehavior: 'Error message should appear',
-        actualBehavior: 'Short',
+    it('throws error for title more than 70 characters', () => {
+      const data = {
+        title: 'a'.repeat(71),
+        prompt: 'Test prompt',
       };
       
-      const result = bugTechnicalSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
+      expect(() => validateSmartPrompt(data)).toThrow('Title must be between 5 and 70 characters');
     });
-  });
 
-  describe('epicTechnicalSchema', () => {
-    it('validates valid epic technical data', () => {
-      const validData = {
-        subFeatures: ['User registration', 'Login/logout', 'Password reset', 'Two-factor auth'],
+    it('throws error for empty prompt', () => {
+      const data = {
+        prompt: '   ',
       };
       
-      const result = epicTechnicalSchema.safeParse(validData);
-      expect(result.success).toBe(true);
-    });
-
-    it('rejects empty subFeatures array', () => {
-      const invalidData = {
-        subFeatures: [],
-      };
-      
-      const result = epicTechnicalSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects missing subFeatures field', () => {
-      const invalidData = {};
-      
-      const result = epicTechnicalSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-  });
-
-  describe('technicalDebtSchema', () => {
-    it('validates valid technical debt data', () => {
-      const validData = {
-        improvementAreas: ['Replace legacy auth library', 'Update to latest security standards', 'Improve test coverage'],
-      };
-      
-      const result = technicalDebtSchema.safeParse(validData);
-      expect(result.success).toBe(true);
-    });
-
-    it('rejects empty improvementAreas array', () => {
-      const invalidData = {
-        improvementAreas: [],
-      };
-      
-      const result = technicalDebtSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
-    });
-
-    it('rejects missing improvementAreas field', () => {
-      const invalidData = {};
-      
-      const result = technicalDebtSchema.safeParse(invalidData);
-      expect(result.success).toBe(false);
+      expect(() => validateSmartPrompt(data)).toThrow('Title is required or prompt must be long enough to generate title');
     });
   });
 
   describe('implementationSchema', () => {
     it('validates valid implementation data', () => {
       const validData = {
-        requirements: 'Implement secure JWT-based authentication with refresh tokens',
-        dependencies: ['jsonwebtoken', 'bcrypt', 'express-validator'],
-        approach: 'Use middleware pattern for authentication, implement refresh token rotation',
-        affectedFiles: ['src/auth/middleware.ts', 'src/auth/controllers.ts', 'src/models/User.ts'],
+        requirements: 'Implement OAuth2 authentication with refresh tokens',
+        dependencies: ['next-auth', 'bcrypt', 'jsonwebtoken'],
+        approach: 'Use NextAuth.js with custom credentials provider and JWT strategy',
+        affectedFiles: ['app/api/auth/[...nextauth]/route.ts', 'lib/auth.ts'],
       };
       
       const result = implementationSchema.safeParse(validData);
       expect(result.success).toBe(true);
     });
 
-    it('allows empty dependencies array', () => {
+    it('validates implementation data with empty dependencies', () => {
       const validData = {
-        requirements: 'Implement secure JWT-based authentication with refresh tokens',
+        requirements: 'Implement OAuth2 authentication with refresh tokens',
         dependencies: [],
-        approach: 'Use middleware pattern for authentication, implement refresh token rotation',
-        affectedFiles: ['src/auth/middleware.ts', 'src/auth/controllers.ts', 'src/models/User.ts'],
-      };
-      
-      const result = implementationSchema.safeParse(validData);
-      expect(result.success).toBe(true);
-    });
-
-    it('allows empty affectedFiles array', () => {
-      const validData = {
-        requirements: 'Implement secure JWT-based authentication with refresh tokens',
-        dependencies: ['jsonwebtoken', 'bcrypt', 'express-validator'],
-        approach: 'Use middleware pattern for authentication, implement refresh token rotation',
-        affectedFiles: [],
+        approach: 'Use NextAuth.js with custom credentials provider and JWT strategy',
+        affectedFiles: ['app/api/auth/[...nextauth]/route.ts', 'lib/auth.ts'],
       };
       
       const result = implementationSchema.safeParse(validData);
@@ -286,10 +250,10 @@ describe('Validation Schemas', () => {
 
     it('rejects requirements that is too short', () => {
       const invalidData = {
-        requirements: 'Short',
-        dependencies: ['jsonwebtoken', 'bcrypt', 'express-validator'],
-        approach: 'Use middleware pattern for authentication, implement refresh token rotation',
-        affectedFiles: ['src/auth/middleware.ts', 'src/auth/controllers.ts', 'src/models/User.ts'],
+        requirements: 'Too short',
+        dependencies: ['next-auth'],
+        approach: 'Use NextAuth.js with custom credentials provider and JWT strategy',
+        affectedFiles: ['app/api/auth/[...nextauth]/route.ts'],
       };
       
       const result = implementationSchema.safeParse(invalidData);
@@ -298,10 +262,34 @@ describe('Validation Schemas', () => {
 
     it('rejects approach that is too short', () => {
       const invalidData = {
-        requirements: 'Implement secure JWT-based authentication with refresh tokens',
-        dependencies: ['jsonwebtoken', 'bcrypt', 'express-validator'],
-        approach: 'Short',
-        affectedFiles: ['src/auth/middleware.ts', 'src/auth/controllers.ts', 'src/models/User.ts'],
+        requirements: 'Implement OAuth2 authentication with refresh tokens',
+        dependencies: ['next-auth'],
+        approach: 'Too short',
+        affectedFiles: ['app/api/auth/[...nextauth]/route.ts'],
+      };
+      
+      const result = implementationSchema.safeParse(invalidData);
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects non-array dependencies', () => {
+      const invalidData = {
+        requirements: 'Implement OAuth2 authentication with refresh tokens',
+        dependencies: 'next-auth',
+        approach: 'Use NextAuth.js with custom credentials provider and JWT strategy',
+        affectedFiles: ['app/api/auth/[...nextauth]/route.ts'],
+      };
+      
+      const result = implementationSchema.safeParse(invalidData);
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects non-array affectedFiles', () => {
+      const invalidData = {
+        requirements: 'Implement OAuth2 authentication with refresh tokens',
+        dependencies: ['next-auth'],
+        approach: 'Use NextAuth.js with custom credentials provider and JWT strategy',
+        affectedFiles: 'app/api/auth/[...nextauth]/route.ts',
       };
       
       const result = implementationSchema.safeParse(invalidData);

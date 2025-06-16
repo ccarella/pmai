@@ -20,6 +20,31 @@
 
 ### Recent Updates:
 
+- **OpenAI GitHub Issue Generation** (feature/openai-github-issue-generation):
+  - **Enhanced Issue Generation with Custom Prompt**:
+    - Integrated OpenAI API to transform user prompts into Claude Code-optimized GitHub issues
+    - Created dedicated `/api/generate-issue` endpoint for AI-powered issue enhancement
+    - Uses specialized prompt template that generates structured GitHub issues with:
+      - Clear, actionable requirements extracted from user input
+      - Technical specifications and implementation guides
+      - Testable acceptance criteria
+      - Claude Code-specific optimizations
+  - **Preview Page Enhancements**:
+    - Added three-tab interface: "Original", "GitHub Issue", and "Claude Prompt"
+    - "Original" tab shows the user's raw input for reference
+    - "GitHub Issue" tab displays the AI-enhanced markdown issue
+    - Maintains existing copy and publish functionality
+  - **Integration with Existing Flow**:
+    - Seamlessly integrated with current `/api/create-issue` endpoint
+    - Preserves all existing OpenAI configurations (rate limiting, cost protection)
+    - Falls back to basic template generation when API key unavailable
+    - Added `original` field to API response for preview display
+  - **Testing & Quality**:
+    - Added comprehensive tests for new OpenAI integration
+    - Updated preview page tests for three-tab interface
+    - Fixed validation test issues
+    - All tests passing, linting clean
+
 - **Smart Prompt Migration Completion** (Smart Prompt Form):
   - **Migration from Multi-Form to Two-Field Design**:
     - Removed legacy six-step multi-form issue creator

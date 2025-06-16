@@ -9,6 +9,7 @@ import { PublishButton } from '@/components/PublishButton';
 import { pageVariants } from '@/lib/animations/variants';
 
 interface GeneratedIssue {
+  original: string;
   markdown: string;
   claudePrompt: string;
   summary: {
@@ -21,7 +22,7 @@ interface GeneratedIssue {
 export default function PreviewPage() {
   const router = useRouter();
   const [issue, setIssue] = useState<GeneratedIssue | null>(null);
-  const [activeTab, setActiveTab] = useState<'markdown' | 'claude'>('markdown');
+  const [activeTab, setActiveTab] = useState<'original' | 'markdown' | 'claude'>('markdown');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ export default function PreviewPage() {
   const handleCopy = async () => {
     if (!issue) return;
     
-    const textToCopy = activeTab === 'markdown' ? issue.markdown : issue.claudePrompt;
+    const textToCopy = activeTab === 'original' ? issue.original : activeTab === 'markdown' ? issue.markdown : issue.claudePrompt;
     await navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -146,6 +147,16 @@ export default function PreviewPage() {
             <h2 className="text-xl font-semibold text-foreground">Generated Content</h2>
             <div className="flex space-x-2">
               <button
+                onClick={() => setActiveTab('original')}
+                className={`px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${
+                  activeTab === 'original'
+                    ? 'bg-accent text-foreground shadow-sm'
+                    : 'text-muted hover:text-foreground hover:bg-card-bg'
+                }`}
+              >
+                Original
+              </button>
+              <button
                 onClick={() => setActiveTab('markdown')}
                 className={`px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${
                   activeTab === 'markdown'
@@ -170,7 +181,7 @@ export default function PreviewPage() {
           
           <div className="bg-input-bg border border-border rounded-md p-4 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-card-bg">
             <pre className="whitespace-pre-wrap text-sm font-mono text-foreground">
-              {activeTab === 'markdown' ? issue.markdown : issue.claudePrompt}
+              {activeTab === 'original' ? issue.original : activeTab === 'markdown' ? issue.markdown : issue.claudePrompt}
             </pre>
           </div>
           
