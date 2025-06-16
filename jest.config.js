@@ -15,7 +15,7 @@ const customJestConfig = {
     '^octokit$': '<rootDir>/tests/__mocks__/octokit.js',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(octokit|@octokit|@upstash|uncrypto|universal-github-app-jwt|@github|universal-user-agent|before-after-hook|openapi-typescript-fetch)/)',
+    'node_modules/(?!(octokit|@octokit|@upstash|uncrypto|universal-github-app-jwt|@github|universal-user-agent|before-after-hook|openapi-typescript-fetch|jose|openid-client|next-auth)/)',
   ],
   testMatch: [
     '<rootDir>/tests/**/*.test.{js,jsx,ts,tsx}',
