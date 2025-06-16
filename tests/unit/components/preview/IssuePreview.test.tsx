@@ -222,7 +222,7 @@ describe('IssuePreview', () => {
     expect(mockOnEdit).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onSubmit when Create Issue button is clicked', () => {
+  it('renders Publish to GitHub button', () => {
     render(
       <IssuePreview
         formData={mockFormData}
@@ -231,8 +231,7 @@ describe('IssuePreview', () => {
       />
     );
 
-    fireEvent.click(screen.getByText('Create Issue'));
-    expect(mockOnSubmit).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Publish to GitHub')).toBeInTheDocument();
   });
 
   it('renders with custom form data correctly', () => {

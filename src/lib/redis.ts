@@ -1,0 +1,41 @@
+import { Redis } from '@upstash/redis'
+
+export const redis = new Redis({
+  url: process.env.KV_REST_API_URL!,
+  token: process.env.KV_REST_API_TOKEN!,
+})
+
+// Helper functions for GitHub connection data
+export interface GitHubConnection {
+  id: string
+  userId: string
+  accessToken: string
+  refreshToken?: string
+  selectedRepo?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export const githubConnections = {
+  async get(userId: string): Promise<GitHubConnection | null> {
+    const data = await redis.get(`github:${userId}`)
+    return data as GitHubConnection | null
+  },
+
+  async set(userId: string, connection: GitHubConnection): Promise<void> {
+    await redis.set(`github:${userId}`, connection)
+  },
+
+  async delete(userId: string): Promise<void> {
+    await redis.del(`github:${userId}`)
+  },
+
+  async updateSelectedRepo(userId: string, repoFullName: string): Promise<void> {
+    const connection = await githubConnections.get(userId)
+    if (connection) {
+      connection.selectedRepo = repoFullName
+      connection.updatedAt = new Date().toISOString()
+      await githubConnections.set(userId, connection)
+    }
+  }
+}

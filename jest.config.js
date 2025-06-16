@@ -11,7 +11,12 @@ const customJestConfig = {
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@upstash/redis$': '<rootDir>/tests/__mocks__/@upstash/redis.js',
+    '^octokit$': '<rootDir>/tests/__mocks__/octokit.js',
   },
+  transformIgnorePatterns: [
+    'node_modules/(?!(octokit|@octokit|@upstash|uncrypto|universal-github-app-jwt|@github|universal-user-agent|before-after-hook|openapi-typescript-fetch)/)',
+  ],
   testMatch: [
     '<rootDir>/tests/**/*.test.{js,jsx,ts,tsx}',
     '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',

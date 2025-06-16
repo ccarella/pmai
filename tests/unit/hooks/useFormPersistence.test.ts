@@ -3,25 +3,24 @@ import { useFormPersistence, loadPersistedFormData, clearPersistedFormData } fro
 import { IssueFormData } from '@/lib/types/issue';
 
 // Mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  
-  return {
-    getItem: jest.fn((key: string) => store[key] || null),
-    setItem: jest.fn((key: string, value: string) => {
-      store[key] = value;
-    }),
-    removeItem: jest.fn((key: string) => {
-      delete store[key];
-    }),
-    clear: jest.fn(() => {
-      store = {};
-    }),
-  };
-})();
+let localStorageStore: Record<string, string> = {};
+
+const localStorageMock = {
+  getItem: jest.fn((key: string) => localStorageStore[key] || null),
+  setItem: jest.fn((key: string, value: string) => {
+    localStorageStore[key] = value;
+  }),
+  removeItem: jest.fn((key: string) => {
+    delete localStorageStore[key];
+  }),
+  clear: jest.fn(() => {
+    localStorageStore = {};
+  }),
+};
 
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
+  writable: true,
 });
 
 // Mock console methods
@@ -39,6 +38,7 @@ describe('useFormPersistence', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+    localStorageStore = {};
     localStorageMock.clear();
   });
 

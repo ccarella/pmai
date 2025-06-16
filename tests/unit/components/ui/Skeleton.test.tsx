@@ -94,22 +94,22 @@ describe('Skeleton', () => {
 
   describe('SkeletonCard Component', () => {
     it('renders without avatar by default', () => {
-      render(<SkeletonCard />);
+      const { container } = render(<SkeletonCard />);
       
       // Should render 3 lines by default
-      const skeletons = screen.getByRole('generic').querySelectorAll('.bg-muted\\/20');
+      const skeletons = container.querySelectorAll('.bg-muted\\/20');
       expect(skeletons.length).toBeGreaterThanOrEqual(3);
       
       // Should not have circular skeleton for avatar
-      const circularSkeletons = screen.getByRole('generic').querySelectorAll('.rounded-full');
+      const circularSkeletons = container.querySelectorAll('.rounded-full');
       expect(circularSkeletons).toHaveLength(0);
     });
 
     it('renders with avatar when showAvatar is true', () => {
-      render(<SkeletonCard showAvatar />);
+      const { container } = render(<SkeletonCard showAvatar />);
       
       // Should have one circular skeleton for avatar
-      const circularSkeleton = screen.getByRole('generic').querySelector('.rounded-full');
+      const circularSkeleton = container.querySelector('.rounded-full');
       expect(circularSkeleton).toBeInTheDocument();
       expect(circularSkeleton).toHaveStyle({ width: '48px', height: '48px' });
     });
