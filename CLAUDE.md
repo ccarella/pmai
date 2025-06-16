@@ -79,6 +79,11 @@ src/
 4. **Form Persistence**: LocalStorage-based form data saving
 5. **Markdown Generation**: Creates GitHub-ready issue content
 6. **Claude Prompt Generation**: Optimized prompts for AI assistance
+7. **GitHub Integration**: OAuth authentication and direct issue publishing
+   - NextAuth.js v4 for GitHub OAuth (requires OAuth App, not GitHub App)
+   - Repository selector with private repo support
+   - Direct "Publish to GitHub" from preview page
+   - Upstash Redis for storing GitHub connection data
 
 ## Testing Strategy
 
@@ -97,3 +102,20 @@ src/
 6. Monitor PR for test results
 7. Fix any issues that arise
 8. Notify when PR is ready to merge
+
+## GitHub Integration Setup
+
+**Important**: Use a GitHub **OAuth App**, not a GitHub App!
+
+1. Go to GitHub Settings → Developer settings → OAuth Apps → New OAuth App
+2. Configure:
+   - Application name: Your app name
+   - Homepage URL: Your app URL (e.g., `https://pmai.goodcrypto.xyz`)
+   - Authorization callback URL: `{YOUR_URL}/api/auth/callback/github`
+3. Set environment variables:
+   - `GITHUB_CLIENT_ID`: From OAuth App
+   - `GITHUB_CLIENT_SECRET`: From OAuth App
+   - `NEXTAUTH_SECRET`: Random string for session encryption
+   - `NEXTAUTH_URL`: Your app URL (auto-detected on Vercel)
+   - `UPSTASH_REDIS_REST_URL`: From Upstash console
+   - `UPSTASH_REDIS_REST_TOKEN`: From Upstash console
