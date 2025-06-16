@@ -9,6 +9,7 @@ let aiService: AIEnhancementService | null = null;
 function getAIService(): AIEnhancementService | null {
   // Reset singleton if API key changes (useful for tests)
   const apiKey = process.env.OPENAI_API_KEY;
+  
   if (!apiKey) {
     aiService = null;
     return null;
@@ -93,6 +94,7 @@ export async function POST(request: NextRequest) {
       );
     }
     
+    
     // Check cost protection
     const usage = service.getUsageStats();
     const maxMonthlyCost = parseFloat(process.env.MAX_MONTHLY_COST_USD || '10');
@@ -113,12 +115,15 @@ export async function POST(request: NextRequest) {
     // Get updated usage stats
     const updatedUsage = service.getUsageStats();
 
+    const response = {
+      ...enhanced,
+      original: processedData.prompt,
+      usage: updatedUsage,
+    };
+    
+
     return NextResponse.json(
-      {
-        ...enhanced,
-        original: processedData.prompt,
-        usage: updatedUsage,
-      },
+      response,
       {
         status: 200,
         headers: getRateLimitHeaders(rateLimit),
@@ -253,7 +258,7 @@ Please analyze this and create a comprehensive GitHub issue with all necessary s
     // Use the existing OpenAI client from the service
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const completion = await (service as any).openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4-turbo-preview', // Using gpt-4-turbo-preview which supports JSON mode
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -268,17 +273,21 @@ Please analyze this and create a comprehensive GitHub issue with all necessary s
       throw new Error('No response from AI');
     }
 
+
     // Update usage stats manually since we're using the service's OpenAI client directly
     if (completion.usage) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any).usage.totalTokens += completion.usage.total_tokens;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any).usage.requestCount += 1;
+      // gpt-4-turbo pricing: ~$0.01 per 1K input tokens, $0.03 per 1K output tokens
+      // Using average for estimation: ~$0.02 per 1K tokens
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (service as any).usage.estimatedCost += (completion.usage.total_tokens / 1000) * 0.045;
+      (service as any).usage.estimatedCost += (completion.usage.total_tokens / 1000) * 0.02;
     }
 
     const parsed = JSON.parse(response);
+    
     return {
       original: data.prompt,
       markdown: parsed.markdown || generateBasicMarkdown(data),
