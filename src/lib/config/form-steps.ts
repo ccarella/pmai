@@ -65,7 +65,9 @@ const getBaseSteps = (): FormStep[] => [
         required: false,
       },
     ],
-    validation: contextSchema,
+    validation: z.object({
+      context: contextSchema,
+    }),
   },
 ];
 
@@ -83,7 +85,9 @@ const featureTechnicalStep: FormStep = {
       required: true,
     },
   ],
-  validation: featureTechnicalSchema,
+  validation: z.object({
+    technical: featureTechnicalSchema,
+  }),
 };
 
 const bugTechnicalStep: FormStep = {
@@ -113,7 +117,9 @@ const bugTechnicalStep: FormStep = {
       required: true,
     },
   ],
-  validation: bugTechnicalSchema,
+  validation: z.object({
+    technical: bugTechnicalSchema,
+  }),
 };
 
 const epicTechnicalStep: FormStep = {
@@ -129,7 +135,9 @@ const epicTechnicalStep: FormStep = {
       required: true,
     },
   ],
-  validation: epicTechnicalSchema,
+  validation: z.object({
+    technical: epicTechnicalSchema,
+  }),
 };
 
 const technicalDebtStep: FormStep = {
@@ -145,7 +153,9 @@ const technicalDebtStep: FormStep = {
       required: true,
     },
   ],
-  validation: technicalDebtSchema,
+  validation: z.object({
+    technical: technicalDebtSchema,
+  }),
 };
 
 // Implementation step common to all types
@@ -183,7 +193,9 @@ const implementationStep: FormStep = {
       required: false,
     },
   ],
-  validation: implementationSchema,
+  validation: z.object({
+    implementation: implementationSchema,
+  }),
 };
 
 // Preview step (no validation needed)
@@ -238,19 +250,19 @@ export function isFormComplete(type: IssueType, formData: Partial<IssueFormData>
     // Validate context
     const contextStep = steps.find(s => s.id === 'context');
     if (contextStep) {
-      contextStep.validation.parse(formData.context);
+      contextStep.validation.parse({ context: formData.context });
     }
     
     // Validate technical based on type
     const technicalStep = steps.find(s => s.id === 'technical');
     if (technicalStep) {
-      technicalStep.validation.parse(formData.technical);
+      technicalStep.validation.parse({ technical: formData.technical });
     }
     
     // Validate implementation
     const implementationStep = steps.find(s => s.id === 'implementation');
     if (implementationStep) {
-      implementationStep.validation.parse(formData.implementation);
+      implementationStep.validation.parse({ implementation: formData.implementation });
     }
     
     return true;
