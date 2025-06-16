@@ -1,8 +1,8 @@
 import { Redis } from '@upstash/redis'
 
 export const redis = new Redis({
-  url: process.env.KV_REST_API_URL!,
-  token: process.env.KV_REST_API_TOKEN!,
+  url: process.env.KV_REST_API_URL || 'https://localhost',
+  token: process.env.KV_REST_API_TOKEN || 'dummy-token',
 })
 
 // Helper functions for GitHub connection data

@@ -5,8 +5,8 @@ import { githubConnections } from './redis'
 export const authOptions: NextAuthOptions = {
   providers: [
     GithubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      clientId: process.env.GITHUB_CLIENT_ID || 'dummy-client-id',
+      clientSecret: process.env.GITHUB_CLIENT_SECRET || 'dummy-client-secret',
       authorization: {
         params: {
           scope: 'read:user user:email repo',
@@ -51,7 +51,7 @@ export const authOptions: NextAuthOptions = {
     signIn: '/settings',
     error: '/settings',
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: process.env.NEXTAUTH_SECRET || 'dummy-secret-for-build',
 }
 
 // Extend the built-in session types
