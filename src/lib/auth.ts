@@ -8,9 +8,9 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GITHUB_CLIENT_ID || 'dummy-client-id',
       clientSecret: process.env.GITHUB_CLIENT_SECRET || 'dummy-client-secret',
       authorization: {
+        url: "https://github.com/login/oauth/authorize",
         params: {
           scope: 'read:user user:email repo',
-          // Explicitly request private repo access
           allow_signup: true,
         },
       },
@@ -18,6 +18,12 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account }) {
+      console.log('GitHub SignIn Callback Debug:')
+      console.log('- Provider:', account?.provider)
+      console.log('- Has access token:', !!account?.access_token)
+      console.log('- Token scope from account:', account?.scope)
+      console.log('- Full account object:', JSON.stringify(account, null, 2))
+      
       if (account?.provider === 'github' && account.access_token) {
         // Store GitHub tokens in Redis
         const connection: GitHubConnection = {

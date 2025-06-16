@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import Link from 'next/link'
+import GitHubTroubleshooting from './troubleshooting'
 
 interface DebugInfo {
   session: {
@@ -256,6 +257,9 @@ export default function GitHubAuthDebugPage() {
                 </Link>
               </div>
             </Card>
+
+            {/* Troubleshooting Guide - Show when no repo scope */}
+            {!hasRepoScope && <GitHubTroubleshooting />}
 
             {/* Raw Data */}
             <details className="cursor-pointer">
