@@ -3,8 +3,17 @@ import { getServerSession } from 'next-auth/next'
 import { authOptions } from '@/lib/auth'
 import { githubConnections } from '@/lib/redis'
 import { Octokit } from 'octokit'
+import { isGitHubAuthConfigured, isRedisConfigured } from '@/lib/auth-config'
 
 export async function GET() {
+  // Check if GitHub auth is configured
+  if (!isGitHubAuthConfigured() || !isRedisConfigured()) {
+    return NextResponse.json(
+      { error: 'GitHub integration not configured' },
+      { status: 503 }
+    )
+  }
+
   try {
     const session = await getServerSession(authOptions)
     

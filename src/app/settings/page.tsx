@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card'
 import { motion } from 'framer-motion'
 import { fadeIn } from '@/lib/animations/variants'
 import Link from 'next/link'
+import { isGitHubAuthConfigured } from '@/lib/auth-config'
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
@@ -59,7 +60,21 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold text-foreground">GitHub Connection</h2>
             
-            {status === 'loading' ? (
+            {!isGitHubAuthConfigured() ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-warning/10 border border-warning/30 rounded-md">
+                  <p className="text-warning font-medium">GitHub integration not configured</p>
+                  <p className="text-sm text-warning/80 mt-1">
+                    The application owner needs to set up GitHub OAuth credentials in the environment variables.
+                  </p>
+                </div>
+                <Link href="/">
+                  <Button variant="secondary">
+                    Back to Home
+                  </Button>
+                </Link>
+              </div>
+            ) : status === 'loading' ? (
               <div className="flex items-center justify-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
