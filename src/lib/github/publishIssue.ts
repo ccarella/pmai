@@ -55,7 +55,8 @@ export async function publishToGitHub(params: PublishIssueParams): Promise<Publi
     let errorMessage = 'Failed to publish issue'
     
     if (error instanceof Error) {
-      const githubError = error as any
+      // Check if it's an Octokit error with status property
+      const githubError = error as Error & { status?: number }
       if (githubError.status === 404) {
         errorMessage = 'Repository not found or access denied'
       } else if (githubError.status === 403) {
