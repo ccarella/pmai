@@ -33,7 +33,7 @@ export class AIEnhancementService {
       const prompt = this.buildPrompt(formData);
       
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4-turbo-preview',
         messages: [
           {
             role: 'system',

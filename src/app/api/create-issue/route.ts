@@ -78,11 +78,9 @@ export async function POST(request: NextRequest) {
 
     // Get AI service
     const service = getAIService();
-    console.log('AI service available:', !!service);
     
     // If no service available (no API key), return basic structured response
     if (!service) {
-      console.log('No OpenAI API key, using basic template');
       const basicResponse = generateBasicIssue(processedData);
       return NextResponse.json(
         {
@@ -258,10 +256,9 @@ User Prompt: ${data.prompt}
 Please analyze this and create a comprehensive GitHub issue with all necessary sections.`;
 
     // Use the existing OpenAI client from the service
-    console.log('Making OpenAI API call with model: gpt-4o-mini');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const completion = await (service as any).openai.chat.completions.create({
-      model: 'gpt-4o-mini', // Using gpt-4o-mini which supports JSON mode and is more cost-effective
+      model: 'gpt-4-turbo-preview', // Using gpt-4-turbo-preview which supports JSON mode
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -272,7 +269,6 @@ Please analyze this and create a comprehensive GitHub issue with all necessary s
     });
 
     const response = completion.choices[0]?.message?.content;
-    console.log('OpenAI response received, length:', response?.length);
     if (!response) {
       throw new Error('No response from AI');
     }
@@ -285,9 +281,9 @@ Please analyze this and create a comprehensive GitHub issue with all necessary s
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any).usage.requestCount += 1;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      // gpt-4o-mini pricing: $0.00015 per 1K input tokens, $0.0006 per 1K output tokens
-      // Using average for estimation: ~$0.00038 per 1K tokens
-      (service as any).usage.estimatedCost += (completion.usage.total_tokens / 1000) * 0.00038;
+      // gpt-4-turbo pricing: ~$0.01 per 1K input tokens, $0.03 per 1K output tokens
+      // Using average for estimation: ~$0.02 per 1K tokens
+      (service as any).usage.estimatedCost += (completion.usage.total_tokens / 1000) * 0.02;
     }
 
     const parsed = JSON.parse(response);
@@ -304,7 +300,6 @@ Please analyze this and create a comprehensive GitHub issue with all necessary s
     };
   } catch (error) {
     console.error('AI enhancement failed:', error);
-    console.log('Falling back to basic issue generation');
     return generateBasicIssue(data);
   }
 }
