@@ -10,6 +10,8 @@ export const authOptions: NextAuthOptions = {
       authorization: {
         params: {
           scope: 'read:user user:email repo',
+          // Explicitly request private repo access
+          allow_signup: true,
         },
       },
     }),

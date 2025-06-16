@@ -31,10 +31,12 @@ export async function GET() {
       auth: connection.accessToken,
     })
 
-    // Fetch user's repositories
+    // Fetch user's repositories (including private ones)
     const { data: repositories } = await octokit.rest.repos.listForAuthenticatedUser({
       sort: 'updated',
       per_page: 100,
+      visibility: 'all', // Explicitly request all repos including private
+      affiliation: 'owner,collaborator,organization_member',
     })
 
     return NextResponse.json({
