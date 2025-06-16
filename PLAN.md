@@ -20,6 +20,23 @@
 
 ### Recent Updates:
 
+- **UI Improvements** (feature/ui-improvements):
+  - **UI Component Updates**:
+    - Removed "Estimated Effort" field from Issue Summary display
+    - Removed "Claude Prompt" tab from Generated Content preview
+    - Replaced "Copy to Clipboard" button with a copy icon in the upper right of generated content
+    - Set "GitHub Issue" as the default tab in preview page
+    - Added loading spinner to form submission button
+    - Created minimal header component with PMAI branding and settings gear icon
+  - **Testing**:
+    - Updated all affected component tests
+    - Added new tests for Header component
+    - Fixed test expectations for removed UI elements
+    - All preview page tests passing
+  - **Code Quality**:
+    - Fixed ESLint issues with require imports
+    - All linting checks pass
+
 - **OpenAI GitHub Issue Generation** (feature/openai-github-issue-generation):
   - **Enhanced Issue Generation with Custom Prompt**:
     - Integrated OpenAI API to transform user prompts into Claude Code-optimized GitHub issues
@@ -132,6 +149,14 @@
     - Unit tests for components, utilities, and API routes
     - Mock implementations for external dependencies
     - 439 passing tests out of 457 total
+
+### Completed Features:
+- ✅ Estimated Effort removed from Issue Summary
+- ✅ Claude Prompt tab removed from preview
+- ✅ Copy icon added to replace button
+- ✅ GitHub Issue as default tab
+- ✅ Loading spinner on form submission
+- ✅ Header with settings link
 
 ### Next Phases:
 - 🚀 **Phase 7**: Dashboard & Analytics

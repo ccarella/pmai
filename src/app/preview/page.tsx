@@ -22,7 +22,7 @@ interface GeneratedIssue {
 export default function PreviewPage() {
   const router = useRouter();
   const [issue, setIssue] = useState<GeneratedIssue | null>(null);
-  const [activeTab, setActiveTab] = useState<'original' | 'markdown' | 'claude'>('markdown');
+  const [activeTab, setActiveTab] = useState<'original' | 'markdown'>('markdown');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export default function PreviewPage() {
   const handleCopy = async () => {
     if (!issue) return;
     
-    const textToCopy = activeTab === 'original' ? issue.original : activeTab === 'markdown' ? issue.markdown : issue.claudePrompt;
+    const textToCopy = activeTab === 'original' ? issue.original : issue.markdown;
     await navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -107,7 +107,7 @@ export default function PreviewPage() {
         {/* Summary Card */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4 text-foreground">Issue Summary</h2>
-          <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <span className="font-medium text-muted">Type:</span>
               <div className="mt-1">
@@ -130,14 +130,6 @@ export default function PreviewPage() {
                 </span>
               </div>
             </div>
-            <div>
-              <span className="font-medium text-muted">Estimated Effort:</span>
-              <div className="mt-1">
-                <span className="inline-block px-2 py-1 bg-blue-500/20 text-blue-400 rounded-md text-xs font-medium capitalize">
-                  {issue.summary.estimatedEffort}
-                </span>
-              </div>
-            </div>
           </div>
         </Card>
 
@@ -145,7 +137,23 @@ export default function PreviewPage() {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-foreground">Generated Content</h2>
-            <div className="flex space-x-2">
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleCopy}
+                className="p-2 rounded-md hover:bg-card-bg transition-colors duration-200 group"
+                title={copied ? 'Copied!' : 'Copy to clipboard'}
+              >
+                {copied ? (
+                  <svg className="w-5 h-5 text-green-500" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path d="M5 13l4 4L19 7"></path>
+                  </svg>
+                ) : (
+                  <svg className="w-5 h-5 text-muted group-hover:text-foreground transition-colors" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+                    <path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                  </svg>
+                )}
+              </button>
+              <div className="flex space-x-2">
               <button
                 onClick={() => setActiveTab('original')}
                 className={`px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${
@@ -166,22 +174,13 @@ export default function PreviewPage() {
               >
                 GitHub Issue
               </button>
-              <button
-                onClick={() => setActiveTab('claude')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${
-                  activeTab === 'claude'
-                    ? 'bg-accent text-foreground shadow-sm'
-                    : 'text-muted hover:text-foreground hover:bg-card-bg'
-                }`}
-              >
-                Claude Prompt
-              </button>
+              </div>
             </div>
           </div>
           
           <div className="bg-input-bg border border-border rounded-md p-4 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-card-bg">
             <pre className="whitespace-pre-wrap text-sm font-mono text-foreground">
-              {activeTab === 'original' ? issue.original : activeTab === 'markdown' ? issue.markdown : issue.claudePrompt}
+              {activeTab === 'original' ? issue.original : issue.markdown}
             </pre>
           </div>
           
@@ -189,11 +188,7 @@ export default function PreviewPage() {
             <Button variant="secondary" onClick={handleEdit}>
               Create New Issue
             </Button>
-            <div className="flex items-center space-x-3">
-              <Button variant="secondary" onClick={handleCopy}>
-                {copied ? 'Copied!' : 'Copy to Clipboard'}
-              </Button>
-              <PublishButton
+            <PublishButton
                 title={extractTitle(issue.markdown)}
                 body={issue.markdown}
                 labels={[issue.summary.type]}
@@ -204,7 +199,6 @@ export default function PreviewPage() {
                   console.error('Failed to publish:', error);
                 }}
               />
-            </div>
           </div>
         </Card>
       </motion.div>

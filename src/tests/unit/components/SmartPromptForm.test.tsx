@@ -36,7 +36,12 @@ jest.mock('@/components/ui/Textarea', () => ({
 
 jest.mock('@/components/ui/Button', () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  Button: ({ children, loading, ...props }: any) => (
+    <button {...props}>
+      {loading && <span data-testid="spinner" />}
+      {children}
+    </button>
+  ),
 }));
 
 jest.mock('@/components/ui/Card', () => ({
@@ -190,10 +195,11 @@ describe('SmartPromptForm', () => {
     expect(submitButton).toBeDisabled();
   });
 
-  it('shows correct button text when submitting', () => {
+  it('shows correct button text and spinner when submitting', () => {
     render(<SmartPromptForm onSubmit={mockOnSubmit} isSubmitting={true} />);
     
     expect(screen.getByRole('button', { name: /creating issue/i })).toBeInTheDocument();
+    expect(screen.getByTestId('spinner')).toBeInTheDocument();
   });
 
   it('shows helper text for title field', () => {
