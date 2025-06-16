@@ -182,7 +182,7 @@ describe('FormStep', () => {
 
     // Check if error messages are present
     await waitFor(() => {
-      expect(screen.getByText('Title is required')).toBeInTheDocument();
+      expect(screen.getByText('String must contain at least 10 character(s)')).toBeInTheDocument();
     });
   });
 
