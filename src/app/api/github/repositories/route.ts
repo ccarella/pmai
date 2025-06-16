@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { githubConnections } from '@/lib/redis'
 import { Octokit } from 'octokit'
 import { isGitHubAuthConfigured, isRedisConfigured } from '@/lib/auth-config'
+import { withCacheHeaders, CACHE_CONFIGS } from '@/lib/utils/cache-headers'
 
 export async function GET() {
   // Check if GitHub auth is configured
@@ -39,10 +40,12 @@ export async function GET() {
       affiliation: 'owner,collaborator,organization_member',
     })
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       repositories,
       selectedRepo: connection.selectedRepo || null,
     })
+    
+    return withCacheHeaders(response, CACHE_CONFIGS.PRIVATE)
   } catch (error) {
     console.error('Error fetching repositories:', error)
     return NextResponse.json(
