@@ -20,6 +20,30 @@
 
 ### Recent Updates:
 
+- **Repository Switching Feature** (feature/repository-switching):
+  - **Repository Management Enhancement**:
+    - Added repository switcher component in header for quick repository switching
+    - Displays currently selected repository name in a dropdown button
+    - Shows list of added repositories with visual indicators
+    - Supports adding/removing repositories from quick access list
+    - Private repository indicators for better visibility
+  - **Backend Improvements**:
+    - Extended Redis schema to support multiple added repositories
+    - Created new API endpoint `/api/github/added-repos` for managing repository list
+    - Added helper functions for adding/removing repositories
+    - Automatic addition to list when selecting a repository
+  - **UI/UX Enhancements**:
+    - Repository switcher integrated into main header for persistent visibility
+    - Dropdown closes on outside click for better UX
+    - Loading states while fetching repository data
+    - "Add repository" link for easy access to repository management
+    - Updated repository management page to support adding multiple repos
+  - **Testing**:
+    - Comprehensive unit tests for RepositorySwitcher component
+    - Integration tests for new API endpoints
+    - Fixed TypeScript linting issues
+    - All new tests passing
+
 - **UI Improvements** (feature/ui-improvements):
   - **UI Component Updates**:
     - Removed "Estimated Effort" field from Issue Summary display

@@ -12,6 +12,7 @@ export interface GitHubConnection {
   accessToken: string
   refreshToken?: string
   selectedRepo?: string
+  addedRepos?: string[] // Array of repository full names (owner/repo)
   createdAt: string
   updatedAt: string
 }
@@ -34,6 +35,40 @@ export const githubConnections = {
     const connection = await githubConnections.get(userId)
     if (connection) {
       connection.selectedRepo = repoFullName
+      // Also add to addedRepos if not already there
+      if (!connection.addedRepos) {
+        connection.addedRepos = []
+      }
+      if (!connection.addedRepos.includes(repoFullName)) {
+        connection.addedRepos.push(repoFullName)
+      }
+      connection.updatedAt = new Date().toISOString()
+      await githubConnections.set(userId, connection)
+    }
+  },
+
+  async addRepository(userId: string, repoFullName: string): Promise<void> {
+    const connection = await githubConnections.get(userId)
+    if (connection) {
+      if (!connection.addedRepos) {
+        connection.addedRepos = []
+      }
+      if (!connection.addedRepos.includes(repoFullName)) {
+        connection.addedRepos.push(repoFullName)
+      }
+      connection.updatedAt = new Date().toISOString()
+      await githubConnections.set(userId, connection)
+    }
+  },
+
+  async removeRepository(userId: string, repoFullName: string): Promise<void> {
+    const connection = await githubConnections.get(userId)
+    if (connection && connection.addedRepos) {
+      connection.addedRepos = connection.addedRepos.filter(repo => repo !== repoFullName)
+      // If removing the selected repo, clear selection
+      if (connection.selectedRepo === repoFullName) {
+        connection.selectedRepo = undefined
+      }
       connection.updatedAt = new Date().toISOString()
       await githubConnections.set(userId, connection)
     }
