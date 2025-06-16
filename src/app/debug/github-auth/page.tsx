@@ -10,8 +10,8 @@ interface DebugInfo {
     exists: boolean
     user: {
       id: string
-      name: string
-      email: string
+      name: string | null | undefined
+      email: string | null | undefined
     } | null
   }
   connection: {

@@ -13,8 +13,8 @@ export async function GET() {
         exists: boolean
         user: {
           id: string
-          name: string
-          email: string
+          name: string | null | undefined
+          email: string | null | undefined
         } | null
       }
       connection: {
@@ -128,7 +128,12 @@ export async function GET() {
         reset: new Date(rateLimit.rate.reset * 1000).toISOString(),
       }
     } catch {
-      debugInfo.rateLimit = { error: 'Failed to fetch rate limit' }
+      debugInfo.rateLimit = { 
+        limit: 0,
+        remaining: 0,
+        reset: new Date().toISOString(),
+        error: 'Failed to fetch rate limit' 
+      }
     }
 
     return NextResponse.json(debugInfo)
