@@ -20,6 +20,15 @@
 
 ### Recent Updates:
 
+- **Homepage Copy Removal** (feature/remove-homepage-tech-stack-copy):
+  - **Issue #36**: Remove tech stack and TDD copy from homepage
+  - Removed the section displaying "Built with Next.js, React Hook Form, and Zod validation"
+  - Removed the section displaying "Optimized for TDD with comprehensive test coverage"
+  - Updated homepage to focus solely on the core value proposition
+  - Added comprehensive tests to ensure removed content doesn't reappear
+  - Fixed linting issues with unused imports
+  - All tests passing
+
 - **Repository Switching Feature** (feature/repository-switching):
   - **Repository Management Enhancement**:
     - Added repository switcher component in header for quick repository switching

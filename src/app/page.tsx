@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { heroText, buttonVariants, staggerContainer, staggerItem, fadeIn } from '@/lib/animations/variants';
+import { heroText, buttonVariants, fadeIn } from '@/lib/animations/variants';
 
 export default function Home() {
   return (
@@ -75,35 +75,6 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
-        <motion.div 
-          className="pt-16 text-sm text-muted/70 space-y-2"
-          variants={staggerContainer}
-          initial="hidden"
-          animate="show"
-        >
-          <motion.p 
-            className="flex items-center justify-center gap-2"
-            variants={staggerItem}
-          >
-            <motion.span 
-              className="w-2 h-2 bg-success rounded-full"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-            Built with Next.js, React Hook Form, and Zod validation
-          </motion.p>
-          <motion.p 
-            className="flex items-center justify-center gap-2"
-            variants={staggerItem}
-          >
-            <motion.span 
-              className="w-2 h-2 bg-info rounded-full"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-            />
-            Optimized for TDD with comprehensive test coverage
-          </motion.p>
-        </motion.div>
       </main>
     </motion.div>
   );
