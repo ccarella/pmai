@@ -68,11 +68,14 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between p-4 bg-card-hover rounded-lg">
                   <div className="flex items-center space-x-4">
                     {session.user?.image && (
-                      <img
-                        src={session.user.image}
-                        alt={session.user.name || 'GitHub avatar'}
-                        className="w-10 h-10 rounded-full"
-                      />
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={session.user.image}
+                          alt={session.user.name || 'GitHub avatar'}
+                          className="w-10 h-10 rounded-full"
+                        />
+                      </>
                     )}
                     <div>
                       <p className="font-medium text-foreground">{session.user?.name}</p>

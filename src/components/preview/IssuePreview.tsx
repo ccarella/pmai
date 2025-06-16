@@ -18,7 +18,6 @@ interface IssuePreviewProps {
 export const IssuePreview: React.FC<IssuePreviewProps> = ({
   formData,
   onEdit,
-  onSubmit,
 }) => {
   const [activeTab, setActiveTab] = useState<'markdown' | 'claude'>('markdown');
   const [copied, setCopied] = useState(false);

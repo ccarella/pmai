@@ -49,19 +49,22 @@ export async function publishToGitHub(params: PublishIssueParams): Promise<Publi
       issueUrl: issue.html_url,
       issueNumber: issue.number,
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error publishing to GitHub:', error)
     
     let errorMessage = 'Failed to publish issue'
     
-    if (error.status === 404) {
-      errorMessage = 'Repository not found or access denied'
-    } else if (error.status === 403) {
-      errorMessage = 'GitHub API rate limit exceeded or insufficient permissions'
-    } else if (error.status === 401) {
-      errorMessage = 'GitHub authentication failed. Please reconnect your account'
-    } else if (error.message) {
-      errorMessage = error.message
+    if (error instanceof Error) {
+      const githubError = error as any
+      if (githubError.status === 404) {
+        errorMessage = 'Repository not found or access denied'
+      } else if (githubError.status === 403) {
+        errorMessage = 'GitHub API rate limit exceeded or insufficient permissions'
+      } else if (githubError.status === 401) {
+        errorMessage = 'GitHub authentication failed. Please reconnect your account'
+      } else if (error.message) {
+        errorMessage = error.message
+      }
     }
 
     return {

@@ -15,7 +15,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account, profile }) {
+    async signIn({ user, account }) {
       if (account?.provider === 'github' && account.access_token) {
         // Store GitHub tokens in Redis
         const connection: GitHubConnection = {
