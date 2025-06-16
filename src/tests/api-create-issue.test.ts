@@ -25,11 +25,11 @@ describe('/api/create-issue', () => {
     mockCheckRateLimit = rateLimitModule.checkRateLimit;
     mockGetRateLimitHeaders = rateLimitModule.getRateLimitHeaders;
     
-    mockCheckRateLimit.mockResolvedValue({
+    mockCheckRateLimit.mockImplementation(() => Promise.resolve({
       allowed: true,
       remaining: 19,
       resetAt: Date.now() + 3600000,
-    });
+    }));
     
     mockGetRateLimitHeaders.mockReturnValue({
       'X-RateLimit-Limit': '20',

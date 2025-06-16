@@ -280,9 +280,9 @@ Please analyze this and create a comprehensive GitHub issue with all necessary s
       (service as any).usage.totalTokens += completion.usage.total_tokens;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any).usage.requestCount += 1;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       // gpt-4-turbo pricing: ~$0.01 per 1K input tokens, $0.03 per 1K output tokens
       // Using average for estimation: ~$0.02 per 1K tokens
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any).usage.estimatedCost += (completion.usage.total_tokens / 1000) * 0.02;
     }
 

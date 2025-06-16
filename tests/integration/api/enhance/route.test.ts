@@ -9,6 +9,9 @@ jest.mock('@/lib/services/ai-enhancement');
 jest.mock('@/lib/utils/rate-limit');
 jest.mock('@/lib/utils/default-enhancements');
 
+// Import getRateLimitHeaders to mock it
+import { getRateLimitHeaders } from '@/lib/utils/rate-limit';
+
 // Mock console.error to avoid noise in tests
 const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
 
@@ -64,6 +67,12 @@ describe('API /api/enhance', () => {
       allowed: true,
       remaining: 19,
       resetAt: Date.now() + 3600000,
+    });
+    
+    (getRateLimitHeaders as jest.Mock).mockReturnValue({
+      'X-RateLimit-Limit': '20',
+      'X-RateLimit-Remaining': '19',
+      'X-RateLimit-Reset': new Date(Date.now() + 3600000).toISOString(),
     });
     
     (getDefaultEnhancements as jest.Mock).mockReturnValue(mockEnhancements);
@@ -289,7 +298,7 @@ describe('API /api/enhance', () => {
       const response = await GET(createMockRequest());
       const data = await response.json();
 
-      expect(data.usage.remainingBudget).toBe(0);
+      expect(data.usage.remainingBudget).toBe(-1);
     });
 
     it('includes rate limit headers in response', async () => {

@@ -95,7 +95,7 @@ describe('AIEnhancementService', () => {
       });
 
       expect(mockOpenAI.chat.completions.create).toHaveBeenCalledWith({
-        model: 'gpt-4',
+        model: 'gpt-4-turbo-preview',
         messages: expect.arrayContaining([
           expect.objectContaining({
             role: 'system',

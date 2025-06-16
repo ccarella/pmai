@@ -45,7 +45,9 @@ describe('PublishButton', () => {
     fireEvent.click(button)
 
     // The error will be set immediately
-    expect(mockProps.onError).toHaveBeenCalledWith('Please connect your GitHub account in Settings')
+    await waitFor(() => {
+      expect(mockProps.onError).toHaveBeenCalledWith('Please connect your GitHub account in Settings')
+    })
   })
 
   it('should successfully publish an issue', async () => {
