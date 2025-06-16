@@ -129,11 +129,18 @@ export default function SettingsPage() {
                 )}
 
                 <div className="flex justify-between items-center">
-                  <Link href="/settings/github">
-                    <Button variant="secondary">
-                      Manage Repositories
-                    </Button>
-                  </Link>
+                  <div className="flex gap-2">
+                    <Link href="/settings/github">
+                      <Button variant="secondary">
+                        Manage Repositories
+                      </Button>
+                    </Link>
+                    <Link href="/debug/github-auth">
+                      <Button variant="ghost" size="sm">
+                        Debug Auth
+                      </Button>
+                    </Link>
+                  </div>
                   <Button
                     variant="ghost"
                     onClick={handleSignOut}
