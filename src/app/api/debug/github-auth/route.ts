@@ -8,7 +8,38 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions)
     
-    const debugInfo: any = {
+    const debugInfo: {
+      session: {
+        exists: boolean
+        user: {
+          id: string
+          name: string
+          email: string
+        } | null
+      }
+      connection: {
+        exists: boolean
+        hasAccessToken: boolean
+      }
+      scopes: {
+        requested: string[]
+        granted: string[]
+        error?: string
+      }
+      privateRepoAccess: {
+        tested: boolean
+        success: boolean
+        repoCount: number
+        error: string | null
+      }
+      rateLimit?: {
+        limit: number
+        remaining: number
+        reset: string
+        error?: string
+      }
+      error?: string
+    } = {
       session: {
         exists: !!session,
         user: session?.user ? {
@@ -96,7 +127,7 @@ export async function GET() {
         remaining: rateLimit.rate.remaining,
         reset: new Date(rateLimit.rate.reset * 1000).toISOString(),
       }
-    } catch (error) {
+    } catch {
       debugInfo.rateLimit = { error: 'Failed to fetch rate limit' }
     }
 

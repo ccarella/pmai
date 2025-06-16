@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSession } from 'next-auth/react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import Link from 'next/link'
@@ -40,7 +39,6 @@ interface DebugInfo {
 }
 
 export default function GitHubAuthDebugPage() {
-  const { data: session } = useSession()
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -178,7 +176,7 @@ export default function GitHubAuthDebugPage() {
                     {hasRepoScope ? (
                       <span className="text-success">✓ Granted - You should see private repos</span>
                     ) : (
-                      <span className="text-error">✗ Missing - This is why you can't see private repos!</span>
+                      <span className="text-error">✗ Missing - This is why you can&apos;t see private repos!</span>
                     )}
                   </p>
                 </div>
