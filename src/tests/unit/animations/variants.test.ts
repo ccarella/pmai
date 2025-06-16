@@ -344,7 +344,7 @@ describe('Animation Variants', () => {
 
       enterVariants.forEach((variant) => {
         if (typeof variant === 'object' && 'transition' in variant && variant.transition) {
-          const transition = variant.transition as any;
+          const transition = variant.transition as { ease?: string };
           if ('ease' in transition) {
             expect(transition.ease).toBe('easeOut');
           }
@@ -357,7 +357,7 @@ describe('Animation Variants', () => {
 
       exitVariants.forEach((variant) => {
         if (typeof variant === 'object' && 'transition' in variant && variant.transition) {
-          const transition = variant.transition as any;
+          const transition = variant.transition as { ease?: string };
           expect(transition.ease).toBe('easeIn');
         }
       });

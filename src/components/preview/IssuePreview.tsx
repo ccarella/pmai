@@ -30,10 +30,10 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
     }
   }, [enhance, formData]);
   
-  const enhancedData = {
+  const enhancedData = useMemo(() => ({
     ...formData,
     aiEnhancements: enhancements,
-  } as IssueFormData;
+  } as IssueFormData), [formData, enhancements]);
   
   const markdown = useMemo(() => generateMarkdown(enhancedData), [enhancedData]);
   const claudePrompt = useMemo(() => generateClaudePrompt(enhancedData), [enhancedData]);

@@ -16,7 +16,7 @@ jest.mock('framer-motion', () => ({
 
 describe('Animation Hooks', () => {
   describe('useStaggerAnimation', () => {
-    let mockControls: any;
+    let mockControls: { start: jest.Mock };
 
     beforeEach(() => {
       mockControls = {
@@ -192,7 +192,7 @@ describe('Animation Hooks', () => {
   });
 
   describe('usePageTransition', () => {
-    let mockControls: any;
+    let mockControls: { start: jest.Mock };
 
     beforeEach(() => {
       mockControls = {
@@ -321,7 +321,7 @@ describe('Animation Hooks', () => {
   });
 
   describe('useInViewAnimation', () => {
-    let mockControls: any;
+    let mockControls: { start: jest.Mock };
     let mockObserve: jest.Mock;
     let mockDisconnect: jest.Mock;
     let observerCallback: IntersectionObserverCallback | null = null;
@@ -335,7 +335,7 @@ describe('Animation Hooks', () => {
       mockObserve = jest.fn();
       mockDisconnect = jest.fn();
 
-      (global as any).IntersectionObserver = jest.fn((callback) => {
+      (global as unknown as { IntersectionObserver: jest.Mock }).IntersectionObserver = jest.fn((callback) => {
         observerCallback = callback;
         return {
           observe: mockObserve,
