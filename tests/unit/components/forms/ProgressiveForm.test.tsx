@@ -16,8 +16,19 @@ jest.mock('next/navigation', () => ({
 jest.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+    span: ({ children, ...props }: any) => <span {...props}>{children}</span>,
+    li: ({ children, ...props }: any) => <li {...props}>{children}</li>,
+    svg: ({ children, ...props }: any) => <svg {...props}>{children}</svg>,
+    path: ({ children, ...props }: any) => <path {...props}>{children}</path>,
   },
   AnimatePresence: ({ children }: any) => <>{children}</>,
+  useAnimation: () => ({
+    start: jest.fn(),
+    set: jest.fn(),
+    stop: jest.fn(),
+    mount: jest.fn(),
+  }),
 }));
 
 // Mock FormProvider
