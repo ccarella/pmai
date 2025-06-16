@@ -7,19 +7,33 @@ import { Card } from '@/components/ui/Card'
 import { motion } from 'framer-motion'
 import { fadeIn } from '@/lib/animations/variants'
 import Link from 'next/link'
-import { isGitHubAuthConfigured } from '@/lib/auth-config'
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
   const [selectedRepo, setSelectedRepo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [githubConfigured, setGithubConfigured] = useState(true)
 
   useEffect(() => {
+    // Check GitHub configuration status
+    checkGitHubConfig()
+    
     // Fetch selected repository if user is signed in
     if (session?.user?.id) {
       fetchSelectedRepo()
     }
   }, [session])
+
+  const checkGitHubConfig = async () => {
+    try {
+      const response = await fetch('/api/github/repositories')
+      if (response.status === 503) {
+        setGithubConfigured(false)
+      }
+    } catch (error) {
+      console.error('Error checking GitHub config:', error)
+    }
+  }
 
   const fetchSelectedRepo = async () => {
     try {
@@ -60,7 +74,7 @@ export default function SettingsPage() {
           <div className="space-y-4">
             <h2 className="text-2xl font-semibold text-foreground">GitHub Connection</h2>
             
-            {!isGitHubAuthConfigured() ? (
+            {!githubConfigured ? (
               <div className="space-y-4">
                 <div className="p-4 bg-warning/10 border border-warning/30 rounded-md">
                   <p className="text-warning font-medium">GitHub integration not configured</p>

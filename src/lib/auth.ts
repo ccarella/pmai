@@ -1,6 +1,6 @@
 import { NextAuthOptions } from 'next-auth'
 import GithubProvider from 'next-auth/providers/github'
-import { githubConnections } from './redis'
+import { githubConnections, type GitHubConnection } from './redis'
 
 export const authOptions: NextAuthOptions = {
   providers: [
