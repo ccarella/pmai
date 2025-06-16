@@ -101,7 +101,7 @@ describe('Validation Schemas', () => {
 
     it('rejects businessValue that is too short', () => {
       const invalidData = {
-        businessValue: 'Too short',
+        businessValue: 'ab',
         targetUsers: 'All registered users of the platform',
       };
       
@@ -112,7 +112,7 @@ describe('Validation Schemas', () => {
     it('rejects targetUsers that is too short', () => {
       const invalidData = {
         businessValue: 'This feature will improve user retention by 30% based on market research',
-        targetUsers: 'Short',
+        targetUsers: 'ab',
       };
       
       const result = contextSchema.safeParse(invalidData);

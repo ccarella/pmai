@@ -7,8 +7,8 @@ export const baseIssueSchema = z.object({
 });
 
 export const contextSchema = z.object({
-  businessValue: z.string().min(20),
-  targetUsers: z.string().min(10),
+  businessValue: z.string().min(3),
+  targetUsers: z.string().min(3),
   successCriteria: z.string().optional(),
 });
 
