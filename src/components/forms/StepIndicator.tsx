@@ -13,7 +13,7 @@ interface StepIndicatorProps {
   className?: string;
 }
 
-export const StepIndicator: React.FC<StepIndicatorProps> = ({
+const StepIndicatorComponent: React.FC<StepIndicatorProps> = ({
   steps,
   currentStep,
   onStepClick,
@@ -181,3 +181,5 @@ export const StepIndicator: React.FC<StepIndicatorProps> = ({
     </nav>
   );
 };
+
+export const StepIndicator = React.memo(StepIndicatorComponent);

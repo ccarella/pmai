@@ -7,7 +7,7 @@ interface MarkdownPreviewProps {
   className?: string;
 }
 
-export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
+const MarkdownPreviewComponent: React.FC<MarkdownPreviewProps> = ({
   content,
   className = '',
 }) => {
@@ -21,3 +21,5 @@ export const MarkdownPreview: React.FC<MarkdownPreviewProps> = ({
     </div>
   );
 };
+
+export const MarkdownPreview = React.memo(MarkdownPreviewComponent);

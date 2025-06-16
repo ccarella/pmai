@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { IssueFormData } from '@/lib/types/issue';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -35,8 +35,8 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
     aiEnhancements: enhancements,
   } as IssueFormData;
   
-  const markdown = generateMarkdown(enhancedData);
-  const claudePrompt = generateClaudePrompt(enhancedData);
+  const markdown = useMemo(() => generateMarkdown(enhancedData), [enhancedData]);
+  const claudePrompt = useMemo(() => generateClaudePrompt(enhancedData), [enhancedData]);
   
   const handleCopy = async () => {
     const textToCopy = activeTab === 'markdown' ? markdown : claudePrompt;

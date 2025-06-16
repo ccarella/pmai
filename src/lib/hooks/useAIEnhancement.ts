@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { IssueFormData } from '@/lib/types/issue';
 import { AIEnhancements } from '@/lib/services/ai-enhancement';
 
@@ -21,7 +21,7 @@ export function useAIEnhancement(): UseAIEnhancementResult {
   const [error, setError] = useState<string | null>(null);
   const [usage, setUsage] = useState<UseAIEnhancementResult['usage']>(null);
 
-  const enhance = async (formData: IssueFormData) => {
+  const enhance = useCallback(async (formData: IssueFormData) => {
     setIsLoading(true);
     setError(null);
     
@@ -51,7 +51,7 @@ export function useAIEnhancement(): UseAIEnhancementResult {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const clearError = () => setError(null);
 

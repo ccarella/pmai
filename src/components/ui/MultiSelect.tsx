@@ -11,7 +11,7 @@ interface MultiSelectProps {
   error?: string;
 }
 
-export const MultiSelect: React.FC<MultiSelectProps> = ({
+const MultiSelectComponent: React.FC<MultiSelectProps> = ({
   name,
   value = [],
   onChange,
@@ -82,3 +82,5 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
     </div>
   );
 };
+
+export const MultiSelect = React.memo(MultiSelectComponent);

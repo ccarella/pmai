@@ -145,7 +145,7 @@ describe('ProgressiveForm', () => {
     expect(screen.getByRole('textbox', { name: /description/i })).toBeInTheDocument();
   });
 
-  it('renders preview step correctly', () => {
+  it('renders preview step correctly', async () => {
     render(
       <ProgressiveForm
         issueType="feature"
@@ -154,7 +154,10 @@ describe('ProgressiveForm', () => {
       />
     );
 
-    expect(screen.getByRole('heading', { name: 'Preview' })).toBeInTheDocument();
+    // Wait for lazy-loaded preview component
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'Preview' })).toBeInTheDocument();
+    });
     expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create Issue' })).toBeInTheDocument();
   });
@@ -346,6 +349,11 @@ describe('ProgressiveForm', () => {
         currentStep={2} // Preview step
       />
     );
+
+    // Wait for lazy-loaded preview component
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Edit' })).toBeInTheDocument();
+    });
 
     await user.click(screen.getByRole('button', { name: 'Edit' }));
 

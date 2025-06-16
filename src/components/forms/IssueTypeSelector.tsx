@@ -65,7 +65,7 @@ const issueTypeOptions: IssueTypeOption[] = [
   }
 ];
 
-export const IssueTypeSelector: React.FC<IssueTypeSelectorProps> = ({
+const IssueTypeSelectorComponent: React.FC<IssueTypeSelectorProps> = ({
   onSelect,
   value,
   className = ''
@@ -135,3 +135,5 @@ export const IssueTypeSelector: React.FC<IssueTypeSelectorProps> = ({
     </div>
   );
 };
+
+export const IssueTypeSelector = React.memo(IssueTypeSelectorComponent);

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, lazy, Suspense } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FormStep as FormStepType, FormField } from '@/lib/types/form';
@@ -10,7 +10,8 @@ import { Textarea } from '@/components/ui/Textarea';
 import { MultiSelect } from '@/components/ui/MultiSelect';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { IssuePreview } from '@/components/preview/IssuePreview';
+// Lazy load IssuePreview component
+const IssuePreview = lazy(() => import('@/components/preview/IssuePreview').then(module => ({ default: module.IssuePreview })));
 
 interface FormStepProps {
   step: FormStepType;
@@ -156,11 +157,20 @@ export const FormStep: React.FC<FormStepProps> = ({
   // Special handling for preview step
   if (step.id === 'preview') {
     return (
-      <IssuePreview
-        formData={data}
-        onEdit={onBack}
-        onSubmit={() => onNext({})}
-      />
+      <Suspense fallback={
+        <Card className="mt-6">
+          <div className="p-8 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
+            <p className="mt-4 text-muted">Loading preview...</p>
+          </div>
+        </Card>
+      }>
+        <IssuePreview
+          formData={data}
+          onEdit={onBack}
+          onSubmit={() => onNext({})}
+        />
+      </Suspense>
     );
   }
 
