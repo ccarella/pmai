@@ -41,7 +41,7 @@ interface RippleProps {
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, loading = false, children, disabled, onClick, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, loading = false, children, disabled, onClick, type, name, value, form }, ref) => {
     const [ripples, setRipples] = useState<RippleProps[]>([]);
     
     const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -133,10 +133,13 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         onClick={handleClick}
+        type={type}
+        name={name}
+        value={value}
+        form={form}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         transition={{ duration: 0.1 }}
-        {...props}
       >
         {buttonContent}
       </motion.button>

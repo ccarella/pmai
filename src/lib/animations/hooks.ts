@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AnimationControls, useAnimation } from 'framer-motion';
+import { useAnimation } from 'framer-motion';
 
 /**
  * Hook to handle staggered animations for lists
@@ -69,7 +69,7 @@ export const usePageTransition = () => {
 /**
  * Hook for mouse position tracking (for card tilt effects)
  */
-export const useMousePosition = (ref: React.RefObject<HTMLElement>) => {
+export const useMousePosition = (ref: React.RefObject<HTMLElement | null>) => {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
