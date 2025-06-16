@@ -33,6 +33,15 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
     }
   };
 
+  const handleBlur = () => {
+    if (inputValue.trim()) {
+      if (!value.includes(inputValue.trim())) {
+        onChange([...value, inputValue.trim()]);
+      }
+      setInputValue('');
+    }
+  };
+
   const removeItem = (index: number) => {
     onChange(value.filter((_, i) => i !== index));
   };
@@ -66,6 +75,7 @@ export const MultiSelect: React.FC<MultiSelectProps> = ({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
           placeholder={value.length === 0 ? placeholder : 'Add more...'}
           className="w-full outline-none text-sm bg-transparent text-foreground placeholder:text-muted/70"
         />
