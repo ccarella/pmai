@@ -9,6 +9,7 @@ let aiService: AIEnhancementService | null = null;
 function getAIService(): AIEnhancementService | null {
   // Reset singleton if API key changes (useful for tests)
   const apiKey = process.env.OPENAI_API_KEY;
+  
   if (!apiKey) {
     aiService = null;
     return null;
@@ -77,9 +78,11 @@ export async function POST(request: NextRequest) {
 
     // Get AI service
     const service = getAIService();
+    console.log('AI service available:', !!service);
     
     // If no service available (no API key), return basic structured response
     if (!service) {
+      console.log('No OpenAI API key, using basic template');
       const basicResponse = generateBasicIssue(processedData);
       return NextResponse.json(
         {
@@ -92,6 +95,7 @@ export async function POST(request: NextRequest) {
         }
       );
     }
+    
     
     // Check cost protection
     const usage = service.getUsageStats();
@@ -113,12 +117,15 @@ export async function POST(request: NextRequest) {
     // Get updated usage stats
     const updatedUsage = service.getUsageStats();
 
+    const response = {
+      ...enhanced,
+      original: processedData.prompt,
+      usage: updatedUsage,
+    };
+    
+
     return NextResponse.json(
-      {
-        ...enhanced,
-        original: processedData.prompt,
-        usage: updatedUsage,
-      },
+      response,
       {
         status: 200,
         headers: getRateLimitHeaders(rateLimit),
@@ -251,9 +258,10 @@ User Prompt: ${data.prompt}
 Please analyze this and create a comprehensive GitHub issue with all necessary sections.`;
 
     // Use the existing OpenAI client from the service
+    console.log('Making OpenAI API call with model: gpt-4o-mini');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const completion = await (service as any).openai.chat.completions.create({
-      model: 'gpt-4',
+      model: 'gpt-4o-mini', // Using gpt-4o-mini which supports JSON mode and is more cost-effective
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
@@ -264,9 +272,11 @@ Please analyze this and create a comprehensive GitHub issue with all necessary s
     });
 
     const response = completion.choices[0]?.message?.content;
+    console.log('OpenAI response received, length:', response?.length);
     if (!response) {
       throw new Error('No response from AI');
     }
+
 
     // Update usage stats manually since we're using the service's OpenAI client directly
     if (completion.usage) {
@@ -275,10 +285,13 @@ Please analyze this and create a comprehensive GitHub issue with all necessary s
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (service as any).usage.requestCount += 1;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (service as any).usage.estimatedCost += (completion.usage.total_tokens / 1000) * 0.045;
+      // gpt-4o-mini pricing: $0.00015 per 1K input tokens, $0.0006 per 1K output tokens
+      // Using average for estimation: ~$0.00038 per 1K tokens
+      (service as any).usage.estimatedCost += (completion.usage.total_tokens / 1000) * 0.00038;
     }
 
     const parsed = JSON.parse(response);
+    
     return {
       original: data.prompt,
       markdown: parsed.markdown || generateBasicMarkdown(data),
@@ -291,6 +304,7 @@ Please analyze this and create a comprehensive GitHub issue with all necessary s
     };
   } catch (error) {
     console.error('AI enhancement failed:', error);
+    console.log('Falling back to basic issue generation');
     return generateBasicIssue(data);
   }
 }

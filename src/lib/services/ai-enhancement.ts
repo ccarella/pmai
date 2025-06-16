@@ -33,7 +33,7 @@ export class AIEnhancementService {
       const prompt = this.buildPrompt(formData);
       
       const completion = await this.openai.chat.completions.create({
-        model: 'gpt-4',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
@@ -65,9 +65,9 @@ export class AIEnhancementService {
       if (completion.usage) {
         this.usage.totalTokens += completion.usage.total_tokens;
         this.usage.requestCount += 1;
-        // GPT-4 pricing: $0.03 per 1K input tokens, $0.06 per 1K output tokens
-        // Using average for estimation
-        this.usage.estimatedCost += (completion.usage.total_tokens / 1000) * 0.045;
+        // gpt-4o-mini pricing: $0.00015 per 1K input tokens, $0.0006 per 1K output tokens
+        // Using average for estimation: ~$0.00038 per 1K tokens
+        this.usage.estimatedCost += (completion.usage.total_tokens / 1000) * 0.00038;
       }
 
       const enhancements = JSON.parse(response) as AIEnhancements;
