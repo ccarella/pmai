@@ -23,6 +23,7 @@ export default function GitHubRepositoriesPage() {
   const router = useRouter()
   const [repositories, setRepositories] = useState<Repository[]>([])
   const [selectedRepo, setSelectedRepo] = useState<string | null>(null)
+  const [addedRepos, setAddedRepos] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -38,11 +39,19 @@ export default function GitHubRepositoriesPage() {
 
   const fetchRepositories = async () => {
     try {
-      const response = await fetch('/api/github/repositories')
-      if (response.ok) {
-        const data = await response.json()
-        setRepositories(data.repositories)
-        setSelectedRepo(data.selectedRepo)
+      // Fetch all repositories
+      const reposResponse = await fetch('/api/github/repositories')
+      if (reposResponse.ok) {
+        const reposData = await reposResponse.json()
+        setRepositories(reposData.repositories)
+        setSelectedRepo(reposData.selectedRepo)
+      }
+
+      // Fetch added repositories
+      const addedResponse = await fetch('/api/github/added-repos')
+      if (addedResponse.ok) {
+        const addedData = await addedResponse.json()
+        setAddedRepos(addedData.repositories.map((r: Repository) => r.full_name))
       }
     } catch (error) {
       console.error('Error fetching repositories:', error)
@@ -51,20 +60,55 @@ export default function GitHubRepositoriesPage() {
     }
   }
 
-  const handleSelectRepo = async (repoFullName: string) => {
+  const handleAddRepo = async (repoFullName: string) => {
     setSaving(true)
     try {
-      const response = await fetch('/api/github/repositories', {
+      // Add repository to the list
+      const addResponse = await fetch('/api/github/added-repos', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ selectedRepo: repoFullName }),
+        body: JSON.stringify({ action: 'add', repoFullName }),
+      })
+
+      if (addResponse.ok) {
+        setAddedRepos([...addedRepos, repoFullName])
+        
+        // If this is the first repo being added, also select it
+        if (addedRepos.length === 0) {
+          const selectResponse = await fetch('/api/github/repositories', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ selectedRepo: repoFullName }),
+          })
+          if (selectResponse.ok) {
+            setSelectedRepo(repoFullName)
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error adding repository:', error)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleRemoveRepo = async (repoFullName: string) => {
+    setSaving(true)
+    try {
+      const response = await fetch('/api/github/added-repos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'remove', repoFullName }),
       })
       
       if (response.ok) {
-        setSelectedRepo(repoFullName)
+        setAddedRepos(addedRepos.filter(r => r !== repoFullName))
+        if (selectedRepo === repoFullName) {
+          setSelectedRepo(null)
+        }
       }
     } catch (error) {
-      console.error('Error saving repository:', error)
+      console.error('Error removing repository:', error)
     } finally {
       setSaving(false)
     }
@@ -92,8 +136,8 @@ export default function GitHubRepositoriesPage() {
         className="max-w-4xl mx-auto space-y-8"
       >
         <div className="space-y-2">
-          <h1 className="text-4xl font-bold text-foreground">Select Repository</h1>
-          <p className="text-muted">Choose where to publish your GitHub issues</p>
+          <h1 className="text-4xl font-bold text-foreground">Manage Repositories</h1>
+          <p className="text-muted">Add repositories to your quick access list</p>
         </div>
 
         <div className="space-y-4">
@@ -109,12 +153,12 @@ export default function GitHubRepositoriesPage() {
             {filteredRepos.map((repo) => (
               <Card
                 key={repo.id}
-                className={`p-4 cursor-pointer transition-colors ${
-                  selectedRepo === repo.full_name
+                className={`p-4 transition-colors ${
+                  addedRepos.includes(repo.full_name)
                     ? 'border-primary bg-primary/10'
-                    : 'hover:border-card-hover'
+                    : 'hover:border-card-hover cursor-pointer'
                 }`}
-                onClick={() => handleSelectRepo(repo.full_name)}
+                onClick={() => !addedRepos.includes(repo.full_name) && handleAddRepo(repo.full_name)}
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 flex-1">
@@ -134,10 +178,26 @@ export default function GitHubRepositoriesPage() {
                       Updated {new Date(repo.updated_at).toLocaleDateString()}
                     </p>
                   </div>
-                  {selectedRepo === repo.full_name && (
-                    <svg className="w-5 h-5 text-primary mt-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
+                  {addedRepos.includes(repo.full_name) && (
+                    <div className="flex items-center gap-2">
+                      {selectedRepo === repo.full_name && (
+                        <svg className="w-5 h-5 text-accent mt-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveRepo(repo.full_name);
+                        }}
+                        className="p-1 rounded hover:bg-error/20 transition-colors"
+                        title="Remove from list"
+                      >
+                        <svg className="w-4 h-4 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
                   )}
                 </div>
               </Card>
@@ -157,13 +217,18 @@ export default function GitHubRepositoriesPage() {
               Back to Settings
             </Button>
           </Link>
-          {selectedRepo && (
-            <Button
-              onClick={() => router.push('/')}
-              loading={saving}
-            >
-              Continue to Create Issue
-            </Button>
+          {addedRepos.length > 0 && (
+            <div className="flex gap-2">
+              <p className="text-sm text-muted self-center">
+                {addedRepos.length} {addedRepos.length === 1 ? 'repository' : 'repositories'} added
+              </p>
+              <Button
+                onClick={() => router.push('/')}
+                loading={saving}
+              >
+                Done
+              </Button>
+            </div>
           )}
         </div>
       </motion.div>

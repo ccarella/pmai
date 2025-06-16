@@ -1,8 +1,9 @@
 import { NextRequest } from 'next/server';
-import { POST } from '@/app/api/create-issue/route';
 
 // Mock modules first before any imports
-jest.mock('@/lib/services/ai-enhancement');
+jest.mock('@/lib/services/ai-enhancement', () => ({
+  AIEnhancementService: jest.fn(),
+}));
 jest.mock('@/lib/utils/rate-limit', () => ({
   checkRateLimit: jest.fn(() => Promise.resolve({
     allowed: true,
@@ -22,7 +23,7 @@ describe('/api/create-issue', () => {
   let mockGetRateLimitHeaders: jest.Mock;
   let AIEnhancementService: jest.Mock;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     jest.resetModules();
     
@@ -62,6 +63,9 @@ describe('/api/create-issue', () => {
 
   it('returns enhanced issue with OpenAI when API key is present', async () => {
     process.env.OPENAI_API_KEY = 'test-api-key';
+    
+    // Dynamically import POST to ensure fresh module
+    const { POST } = await import('@/app/api/create-issue/route');
     
     const mockOpenAIResponse = {
       choices: [{
@@ -133,6 +137,9 @@ describe('/api/create-issue', () => {
 
   it('returns basic issue when no OpenAI API key is set', async () => {
     delete process.env.OPENAI_API_KEY;
+    
+    // Dynamically import POST to ensure fresh module
+    const { POST } = await import('@/app/api/create-issue/route');
     
     AIEnhancementService.mockImplementation(() => null);
 
