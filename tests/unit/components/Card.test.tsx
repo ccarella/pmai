@@ -106,7 +106,7 @@ describe('Card', () => {
     );
     
     const card = screen.getByText('Clickable card').parentElement;
-    expect(card).toHaveClass('cursor-pointer', 'hover:shadow-lg');
+    expect(card).toHaveClass('cursor-pointer');
     
     card?.click();
     expect(handleClick).toHaveBeenCalledTimes(1);

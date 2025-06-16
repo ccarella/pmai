@@ -1,4 +1,8 @@
-import React, { forwardRef } from 'react';
+'use client';
+
+import React, { forwardRef, useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { errorShake, fieldVariants } from '@/lib/animations/variants';
 
 interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   label?: string;
@@ -29,6 +33,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     ref
   ) => {
     const inputId = id || name;
+    const [hasError, setHasError] = useState(false);
+    
+    useEffect(() => {
+      if (error && !hasError) {
+        setHasError(true);
+      } else if (!error) {
+        setHasError(false);
+      }
+    }, [error, hasError]);
     
     const sizeClasses = {
       sm: 'px-3 py-1.5 text-sm',
@@ -61,7 +74,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     `.trim();
     
     return (
-      <div className={containerClassName}>
+      <motion.div 
+        className={containerClassName}
+        variants={fieldVariants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+      >
         {label && (
           <label
             htmlFor={inputId}
@@ -72,11 +91,19 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           </label>
         )}
         
-        <div className="relative">
+        <motion.div 
+          className="relative"
+          animate={hasError ? "animate" : "initial"}
+          variants={errorShake}
+        >
           {icon && (
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <motion.div 
+              className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+              whileHover={{ scale: 1.1 }}
+              transition={{ duration: 0.2 }}
+            >
               <span className="text-muted">{icon}</span>
-            </div>
+            </motion.div>
           )}
           
           <input
@@ -93,23 +120,46 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             }
             {...props}
           />
-        </div>
+        </motion.div>
         
-        {error && (
-          <p id={`${inputId}-error`} className="mt-1.5 text-sm text-error flex items-center gap-1">
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {error}
-          </p>
-        )}
-        
-        {helpText && !error && (
-          <p id={`${inputId}-help`} className="mt-1 text-sm text-muted">
-            {helpText}
-          </p>
-        )}
-      </div>
+        <AnimatePresence mode="wait">
+          {error && (
+            <motion.p 
+              id={`${inputId}-error`} 
+              className="mt-1.5 text-sm text-error flex items-center gap-1"
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginTop: 6 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              transition={{ duration: 0.2 }}
+            >
+              <motion.svg 
+                className="w-4 h-4" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </motion.svg>
+              {error}
+            </motion.p>
+          )}
+          
+          {helpText && !error && (
+            <motion.p 
+              id={`${inputId}-help`} 
+              className="mt-1 text-sm text-muted"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.2 }}
+            >
+              {helpText}
+            </motion.p>
+          )}
+        </AnimatePresence>
+      </motion.div>
     );
   }
 );

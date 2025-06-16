@@ -1,7 +1,9 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { FormStep } from '@/lib/types/form';
+import { successCheck } from '@/lib/animations/variants';
 
 interface StepIndicatorProps {
   steps: FormStep[];
@@ -59,8 +61,11 @@ export const StepIndicator: React.FC<StepIndicatorProps> = ({
           const isClickable = isStepClickable(index);
           
           return (
-            <li 
-              key={step.id} 
+            <motion.li 
+              key={step.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: index * 0.1 }}
               className={`
                 flex items-center ${index < steps.length - 1 ? 'flex-1' : ''}
                 ${isClickable ? 'cursor-pointer' : 'cursor-not-allowed'}
@@ -70,7 +75,7 @@ export const StepIndicator: React.FC<StepIndicatorProps> = ({
               `}
               data-testid={`step-${index}`}
             >
-              <button
+              <motion.button
                 onClick={() => handleStepClick(index)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
                 disabled={status === 'future'}
@@ -84,39 +89,66 @@ export const StepIndicator: React.FC<StepIndicatorProps> = ({
                   ${status === 'future' ? 'text-muted' : ''}
                   focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent rounded-lg
                 `}
+                whileHover={isClickable ? { scale: 1.05 } : {}}
+                whileTap={isClickable ? { scale: 0.95 } : {}}
               >
                 {/* Step circle */}
                 <div className="relative flex items-center">
-                  <div
+                  <motion.div
                     data-testid={`step-circle-${index}`}
                     className={`
                       w-10 h-10 rounded-full flex items-center justify-center
                       transition-colors duration-200
                       ${status === 'completed' ? 'bg-accent text-foreground' : ''}
-                      ${status === 'current' ? 'bg-accent text-foreground ring-2 ring-accent/30' : ''}
+                      ${status === 'current' ? 'bg-accent text-foreground' : ''}
                       ${status === 'future' ? 'bg-card-bg text-muted border-2 border-border' : ''}
                     `}
+                    animate={status === 'current' ? {
+                      boxShadow: ['0 0 0 0px rgba(183, 148, 244, 0.3)', '0 0 0 8px rgba(183, 148, 244, 0)']
+                    } : {}}
+                    transition={status === 'current' ? {
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: 'easeOut'
+                    } : {}}
                   >
                     {status === 'completed' ? (
-                      <svg 
+                      <motion.svg 
                         data-testid={`step-${index}-completed`}
                         className="w-5 h-5" 
-                        fill="currentColor" 
-                        viewBox="0 0 20 20"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        viewBox="0 0 24 24"
                       >
-                        <path 
-                          fillRule="evenodd" 
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-                          clipRule="evenodd" 
+                        <motion.path
+                          d="M5 13l4 4L19 7"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          variants={successCheck}
+                          initial="initial"
+                          animate="animate"
                         />
-                      </svg>
+                      </motion.svg>
                     ) : (
-                      <span className="text-sm font-medium">{index + 1}</span>
+                      <motion.span 
+                        className="text-sm font-medium"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                      >
+                        {index + 1}
+                      </motion.span>
                     )}
-                  </div>
+                  </motion.div>
                   
                   {/* Step text */}
-                  <div className="ml-3">
+                  <motion.div 
+                    className="ml-3"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 + 0.2 }}
+                  >
                     <p className={`text-sm font-medium ${!compact ? 'lg:text-base' : ''}`}>
                       {step.title}
                     </p>
@@ -125,21 +157,24 @@ export const StepIndicator: React.FC<StepIndicatorProps> = ({
                         {step.description}
                       </p>
                     )}
-                  </div>
+                  </motion.div>
                 </div>
-              </button>
+              </motion.button>
               
               {/* Connector line */}
               {index < steps.length - 1 && (
-                <div 
-                  data-testid={`connector-${index}`}
-                  className={`
-                    flex-1 h-1 mx-4 transition-colors duration-200
-                    ${index < currentStep ? 'bg-gradient-to-r from-accent to-secondary' : 'bg-border'}
-                  `}
-                />
+                <div className="flex-1 h-1 mx-4 bg-border relative overflow-hidden">
+                  <motion.div
+                    data-testid={`connector-${index}`}
+                    className="absolute inset-0 bg-gradient-to-r from-accent to-secondary"
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: index < currentStep ? 1 : 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 + 0.3, ease: 'easeOut' }}
+                    style={{ transformOrigin: 'left' }}
+                  />
+                </div>
               )}
-            </li>
+            </motion.li>
           );
         })}
       </ol>

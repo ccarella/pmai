@@ -1,4 +1,10 @@
-import React from 'react';
+'use client';
+
+import React, { useRef } from 'react';
+import { motion } from 'framer-motion';
+import { useMousePosition } from '@/lib/animations/hooks';
+import { calculate3DRotation } from '@/lib/animations/utils';
+import { cardVariants } from '@/lib/animations/variants';
 
 interface CardProps {
   children: React.ReactNode;
@@ -10,6 +16,7 @@ interface CardProps {
   padding?: 'sm' | 'md' | 'lg' | 'none';
   onClick?: () => void;
   footer?: React.ReactNode;
+  enable3D?: boolean;
 }
 
 export const Card: React.FC<CardProps> = ({
@@ -22,8 +29,13 @@ export const Card: React.FC<CardProps> = ({
   padding = 'md',
   onClick,
   footer,
+  enable3D = false,
 }) => {
-  const baseClasses = 'bg-card-bg rounded-lg transition-all duration-200';
+  const cardRef = useRef<HTMLDivElement>(null);
+  const mousePosition = useMousePosition(cardRef);
+  const rotation = enable3D ? calculate3DRotation(mousePosition.x, mousePosition.y, 8) : { rotateX: 0, rotateY: 0 };
+  
+  const baseClasses = 'bg-card-bg rounded-lg';
   
   const variantClasses = {
     default: 'shadow-sm shadow-background/50 border border-border',
@@ -39,14 +51,36 @@ export const Card: React.FC<CardProps> = ({
     none: '',
   };
   
-  const interactiveClasses = onClick ? 'cursor-pointer hover:shadow-lg hover:shadow-accent/20 hover:border-accent/50 hover:translate-y-[-2px] active:translate-y-0' : '';
+  const interactiveClasses = onClick ? 'cursor-pointer' : '';
   
   const cardClasses = `${baseClasses} ${variantClasses[variant]} ${paddingClasses[padding]} ${interactiveClasses} ${className}`.trim();
   
   return (
-    <div className={cardClasses} onClick={onClick}>
+    <motion.div
+      ref={cardRef}
+      className={cardClasses}
+      onClick={onClick}
+      variants={onClick ? cardVariants : undefined}
+      initial="rest"
+      whileHover={onClick ? "hover" : undefined}
+      whileTap={onClick ? "tap" : undefined}
+      animate={{
+        rotateX: rotation.rotateX,
+        rotateY: rotation.rotateY,
+      }}
+      style={{
+        transformStyle: enable3D ? 'preserve-3d' : undefined,
+        perspective: enable3D ? 1000 : undefined,
+      }}
+      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+    >
       {(title || headerAction) && (
-        <div className="flex items-start justify-between mb-4">
+        <motion.div 
+          className="flex items-start justify-between mb-4"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
           <div>
             {title && (
               <h3 className="text-lg font-semibold text-foreground">{title}</h3>
@@ -58,14 +92,27 @@ export const Card: React.FC<CardProps> = ({
           {headerAction && (
             <div className="ml-4 flex-shrink-0">{headerAction}</div>
           )}
-        </div>
+        </motion.div>
       )}
       
-      <div>{children}</div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.2 }}
+      >
+        {children}
+      </motion.div>
       
       {footer && (
-        <div className="mt-6 pt-4 border-t border-border/50">{footer}</div>
+        <motion.div 
+          className="mt-6 pt-4 border-t border-border/50"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+        >
+          {footer}
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
