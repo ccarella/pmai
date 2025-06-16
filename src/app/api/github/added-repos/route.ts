@@ -32,7 +32,7 @@ export async function GET() {
     for (const repoFullName of connection.addedRepos) {
       try {
         const [owner, repo] = repoFullName.split('/')
-        const { data } = await octokit.repos.get({ owner, repo })
+        const { data } = await octokit.rest.repos.get({ owner, repo })
         
         repositories.push({
           id: data.id,
