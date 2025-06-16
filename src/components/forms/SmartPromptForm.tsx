@@ -139,6 +139,7 @@ export const SmartPromptForm: React.FC<SmartPromptFormProps> = ({
             <Button
               type="submit"
               disabled={isSubmitting}
+              loading={isSubmitting}
               className="px-8"
             >
               {isSubmitting ? 'Creating Issue...' : 'Create Issue'}

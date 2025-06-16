@@ -3,7 +3,18 @@ import { POST } from '@/app/api/create-issue/route';
 
 // Mock modules first before any imports
 jest.mock('@/lib/services/ai-enhancement');
-jest.mock('@/lib/utils/rate-limit');
+jest.mock('@/lib/utils/rate-limit', () => ({
+  checkRateLimit: jest.fn(() => Promise.resolve({
+    allowed: true,
+    remaining: 19,
+    resetAt: Date.now() + 3600000,
+  })),
+  getRateLimitHeaders: jest.fn(() => ({
+    'X-RateLimit-Limit': '20',
+    'X-RateLimit-Remaining': '19',
+    'X-RateLimit-Reset': new Date(Date.now() + 3600000).toISOString(),
+  })),
+}));
 
 describe('/api/create-issue', () => {
   const originalEnv = process.env;
@@ -25,17 +36,18 @@ describe('/api/create-issue', () => {
     mockCheckRateLimit = rateLimitModule.checkRateLimit;
     mockGetRateLimitHeaders = rateLimitModule.getRateLimitHeaders;
     
+    // Reset to default implementation
     mockCheckRateLimit.mockImplementation(() => Promise.resolve({
       allowed: true,
       remaining: 19,
       resetAt: Date.now() + 3600000,
     }));
     
-    mockGetRateLimitHeaders.mockReturnValue({
+    mockGetRateLimitHeaders.mockImplementation(() => ({
       'X-RateLimit-Limit': '20',
       'X-RateLimit-Remaining': '19',
       'X-RateLimit-Reset': new Date(Date.now() + 3600000).toISOString(),
-    });
+    }));
     
     // Setup AI service mock
     const aiModule = jest.requireMock('@/lib/services/ai-enhancement') as {

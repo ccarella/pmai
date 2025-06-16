@@ -71,7 +71,7 @@ describe('PreviewPage', () => {
     });
   });
 
-  it('displays issue content with three tabs', () => {
+  it('displays issue content with two tabs', () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
@@ -81,7 +81,7 @@ describe('PreviewPage', () => {
     expect(screen.getByText('Issue Preview')).toBeInTheDocument();
     expect(screen.getByText('Original')).toBeInTheDocument();
     expect(screen.getByText('GitHub Issue')).toBeInTheDocument();
-    expect(screen.getByText('Claude Prompt')).toBeInTheDocument();
+    expect(screen.queryByText('Claude Prompt')).not.toBeInTheDocument();
   });
 
   it('displays GitHub Issue content by default', () => {
@@ -107,20 +107,8 @@ describe('PreviewPage', () => {
     expect(screen.getByText(/Build a user authentication system/)).toBeInTheDocument();
   });
 
-  it('switches to Claude Prompt tab when clicked', () => {
-    (window.localStorage.getItem as jest.Mock).mockReturnValue(
-      JSON.stringify(mockIssue)
-    );
-    
-    render(<PreviewPage />);
-    
-    const claudeTab = screen.getByText('Claude Prompt');
-    fireEvent.click(claudeTab);
-    
-    expect(screen.getByText(/Please implement a user authentication system/)).toBeInTheDocument();
-  });
 
-  it('copies content to clipboard based on active tab', async () => {
+  it('copies content to clipboard based on active tab using icon', async () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
@@ -128,7 +116,7 @@ describe('PreviewPage', () => {
     render(<PreviewPage />);
     
     // Test copying GitHub Issue (default)
-    const copyButton = screen.getByText('Copy to Clipboard');
+    const copyButton = screen.getByTitle('Copy to clipboard');
     fireEvent.click(copyButton);
     
     await waitFor(() => {
@@ -145,7 +133,7 @@ describe('PreviewPage', () => {
     });
   });
 
-  it('displays issue summary correctly', () => {
+  it('displays issue summary without estimated effort', () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
@@ -155,7 +143,8 @@ describe('PreviewPage', () => {
     expect(screen.getByText('Issue Summary')).toBeInTheDocument();
     expect(screen.getByText('feature')).toBeInTheDocument();
     expect(screen.getByText('high')).toBeInTheDocument();
-    expect(screen.getByText('large')).toBeInTheDocument();
+    expect(screen.queryByText('large')).not.toBeInTheDocument();
+    expect(screen.queryByText('Estimated Effort:')).not.toBeInTheDocument();
   });
 
   it('handles Create New Issue button click', () => {
@@ -185,22 +174,22 @@ describe('PreviewPage', () => {
     consoleError.mockRestore();
   });
 
-  it('shows copied feedback when copy button is clicked', async () => {
+  it('shows copied feedback when copy icon is clicked', async () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
     
     render(<PreviewPage />);
     
-    const copyButton = screen.getByText('Copy to Clipboard');
+    const copyButton = screen.getByTitle('Copy to clipboard');
     fireEvent.click(copyButton);
     
     await waitFor(() => {
-      expect(screen.getByText('Copied!')).toBeInTheDocument();
+      expect(screen.getByTitle('Copied!')).toBeInTheDocument();
     });
     
     await waitFor(() => {
-      expect(screen.getByText('Copy to Clipboard')).toBeInTheDocument();
+      expect(screen.getByTitle('Copy to clipboard')).toBeInTheDocument();
     }, { timeout: 3000 });
   });
 });
