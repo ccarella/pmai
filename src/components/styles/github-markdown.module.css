@@ -1,0 +1,259 @@
+.markdown {
+  font-size: 16px;
+  line-height: 1.6;
+  word-wrap: break-word;
+}
+
+.markdown > *:first-child {
+  margin-top: 0 !important;
+}
+
+.markdown > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4,
+.markdown h5,
+.markdown h6 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.markdown h1 {
+  font-size: 2em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border);
+}
+
+.markdown h2 {
+  font-size: 1.5em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border);
+}
+
+.markdown h3 {
+  font-size: 1.25em;
+}
+
+.markdown h4 {
+  font-size: 1em;
+}
+
+.markdown h5 {
+  font-size: 0.875em;
+}
+
+.markdown h6 {
+  font-size: 0.85em;
+  color: var(--muted);
+}
+
+.markdown p {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.markdown ul,
+.markdown ol {
+  padding-left: 2em;
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+.markdown ul {
+  list-style-type: disc;
+}
+
+.markdown ol {
+  list-style-type: decimal;
+}
+
+.markdown li {
+  word-wrap: break-all;
+}
+
+.markdown li + li {
+  margin-top: 0.25em;
+}
+
+.markdown li > p {
+  margin-top: 16px;
+}
+
+.markdown li > p:first-child {
+  margin-top: 0;
+}
+
+.markdown li > p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown blockquote {
+  padding: 0 1em;
+  color: var(--muted);
+  border-left: 0.25em solid var(--border);
+  margin: 0 0 16px 0;
+}
+
+.markdown blockquote > :first-child {
+  margin-top: 0;
+}
+
+.markdown blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown code {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  background-color: rgba(175, 184, 193, 0.2);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+}
+
+.markdown pre {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: var(--card-bg);
+  border-radius: 6px;
+  overflow: auto;
+}
+
+.markdown pre code {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  line-height: inherit;
+  word-wrap: normal;
+  background-color: transparent;
+  border: 0;
+}
+
+.markdown pre > code {
+  display: block;
+  padding: 16px;
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  background-color: var(--card-bg);
+  border: 0;
+}
+
+.markdown table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  margin-top: 0;
+  margin-bottom: 16px;
+  overflow: auto;
+  width: 100%;
+}
+
+.markdown table th {
+  font-weight: 600;
+  padding: 6px 13px;
+  border: 1px solid var(--border);
+  background-color: var(--card-bg);
+}
+
+.markdown table td {
+  padding: 6px 13px;
+  border: 1px solid var(--border);
+}
+
+.markdown table tr {
+  background-color: transparent;
+  border-top: 1px solid var(--border);
+}
+
+.markdown table tr:nth-child(2n) {
+  background-color: var(--card-bg);
+}
+
+.markdown hr {
+  height: 0.25em;
+  padding: 0;
+  margin: 24px 0;
+  background-color: var(--border);
+  border: 0;
+}
+
+.markdown a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.markdown a:hover {
+  text-decoration: underline;
+}
+
+.markdown img {
+  max-width: 100%;
+  box-sizing: content-box;
+  background-color: transparent;
+}
+
+.markdown img[align=right] {
+  padding-left: 20px;
+}
+
+.markdown img[align=left] {
+  padding-right: 20px;
+}
+
+.markdown input[type="checkbox"] {
+  margin: 0 0.2em 0.25em -1.6em;
+  vertical-align: middle;
+}
+
+.markdown input[type="checkbox"]:disabled {
+  cursor: default;
+}
+
+.markdown strong {
+  font-weight: 600;
+}
+
+.markdown em {
+  font-style: italic;
+}
+
+.markdown del {
+  text-decoration: line-through;
+}
+
+.markdown .contains-task-list {
+  position: relative;
+  list-style: none;
+  padding-left: 0;
+}
+
+.markdown .task-list-item {
+  list-style: none;
+  padding-left: 1.6em;
+  margin-left: 0;
+}
+
+.markdown .task-list-item input[type="checkbox"] {
+  position: absolute;
+  left: 0;
+  top: 0.3em;
+}
+
+@media (prefers-color-scheme: dark) {
+  .markdown code {
+    background-color: rgba(110, 118, 129, 0.4);
+  }
+}
+
+.dark .markdown code {
+  background-color: rgba(110, 118, 129, 0.4);
+}

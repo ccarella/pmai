@@ -6,7 +6,7 @@ import { useMousePosition } from '@/lib/animations/hooks';
 import { calculate3DRotation } from '@/lib/animations/utils';
 import { cardVariants } from '@/lib/animations/variants';
 
-interface CardProps {
+interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   title?: string;
   subtitle?: string;
@@ -30,6 +30,8 @@ export const Card: React.FC<CardProps> = ({
   onClick,
   footer,
   enable3D = false,
+  role,
+  'aria-label': ariaLabel,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
   const mousePosition = useMousePosition(cardRef);
@@ -73,6 +75,8 @@ export const Card: React.FC<CardProps> = ({
         perspective: enable3D ? 1000 : undefined,
       }}
       transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+      role={role}
+      aria-label={ariaLabel}
     >
       {(title || headerAction) && (
         <motion.div 
