@@ -18,7 +18,12 @@ export interface GitHubIssue {
   }>;
   comments: number;
   html_url: string;
-  pull_request?: boolean;
+  pull_request?: {
+    url: string;
+    html_url: string;
+    diff_url: string;
+    patch_url: string;
+  } | boolean;
 }
 
 export interface GitHubComment {

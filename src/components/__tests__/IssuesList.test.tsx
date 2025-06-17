@@ -43,6 +43,18 @@ jest.mock('../ui/Card', () => ({
   ),
 }));
 
+// Mock PRStatusIndicator
+jest.mock('../PRStatusIndicator', () => ({
+  PRStatusIndicator: ({ status }: { status: string }) => (
+    <div data-testid={`pr-status-${status}`}>PR Status: {status}</div>
+  ),
+}));
+
+// Mock usePRStatuses hook
+jest.mock('@/lib/hooks/usePRStatuses', () => ({
+  usePRStatuses: () => ({ statuses: {} }),
+}));
+
 // Mock animation libs
 jest.mock('@/lib/animations/hooks', () => ({
   useMousePosition: () => ({ x: 0, y: 0 }),
@@ -66,6 +78,10 @@ Object.defineProperty(navigator, 'clipboard', {
   writable: true,
 });
 
+// Mock window.open
+const mockWindowOpen = jest.fn();
+window.open = mockWindowOpen;
+
 describe('IssuesList', () => {
   const mockIssues: GitHubIssue[] = [
     {
@@ -87,6 +103,7 @@ describe('IssuesList', () => {
       ],
       comments: 5,
       pull_request: undefined,
+      closed_at: null,
     },
     {
       id: 2,
@@ -104,6 +121,48 @@ describe('IssuesList', () => {
       labels: [],
       comments: 0,
       pull_request: undefined,
+      closed_at: new Date().toISOString(),
+    },
+    {
+      id: 3,
+      number: 125,
+      title: 'Test PR Issue',
+      body: 'This is a pull request',
+      state: 'open',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      html_url: 'https://github.com/test/repo/issues/125',
+      user: {
+        login: 'testuser3',
+        avatar_url: 'https://github.com/testuser3.png',
+      },
+      labels: [],
+      comments: 2,
+      pull_request: {
+        url: 'https://api.github.com/repos/test/repo/pulls/125',
+        html_url: 'https://github.com/test/repo/pull/125',
+        diff_url: 'https://github.com/test/repo/pull/125.diff',
+        patch_url: 'https://github.com/test/repo/pull/125.patch',
+      },
+      closed_at: null,
+    },
+    {
+      id: 4,
+      number: 126,
+      title: 'Test PR Issue with boolean',
+      body: 'This is a pull request with boolean flag',
+      state: 'open',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      html_url: 'https://github.com/test/repo/issues/126',
+      user: {
+        login: 'testuser4',
+        avatar_url: 'https://github.com/testuser4.png',
+      },
+      labels: [],
+      comments: 0,
+      pull_request: true,
+      closed_at: null,
     },
   ];
 
@@ -112,6 +171,7 @@ describe('IssuesList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockWriteText.mockClear();
+    mockWindowOpen.mockClear();
   });
 
   it('renders empty state when no issues', () => {
@@ -431,10 +491,168 @@ describe('IssuesList', () => {
 
       // Wait for the error to be logged
       await waitFor(() => {
-        expect(mockConsoleError).toHaveBeenCalledWith('Failed to copy URL:', expect.any(Error));
+        expect(mockConsoleError).toHaveBeenCalledWith('Failed to copy URL');
       });
       
       mockConsoleError.mockRestore();
+    });
+  });
+
+  describe('Pull Request Icon functionality', () => {
+    beforeEach(() => {
+      mockWindowOpen.mockClear();
+    });
+
+    it('renders PR icon for issues with pull requests', () => {
+      render(
+        <IssuesList
+          issues={mockIssues}
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      // PR icons should be rendered for issues with pull_request field
+      const prButtons = screen.getAllByTitle('Open pull request in new tab');
+      expect(prButtons).toHaveLength(2); // Two issues have pull_request
+    });
+
+    it('does not render PR icon for regular issues', () => {
+      render(
+        <IssuesList
+          issues={[mockIssues[0], mockIssues[1]]} // Only regular issues
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      // No PR icons should be rendered
+      const prButtons = screen.queryAllByTitle('Open pull request in new tab');
+      expect(prButtons).toHaveLength(0);
+    });
+
+    it('opens PR URL in new tab when PR icon is clicked (with full PR object)', () => {
+      render(
+        <IssuesList
+          issues={[mockIssues[2]]} // Issue with full PR object
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const prButton = screen.getByTitle('Open pull request in new tab');
+      fireEvent.click(prButton);
+
+      expect(mockWindowOpen).toHaveBeenCalledWith(
+        'https://github.com/test/repo/pull/125',
+        '_blank',
+        'noopener,noreferrer'
+      );
+    });
+
+    it('opens PR URL in new tab when PR icon is clicked (with boolean PR flag)', () => {
+      render(
+        <IssuesList
+          issues={[mockIssues[3]]} // Issue with boolean PR flag
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const prButton = screen.getByTitle('Open pull request in new tab');
+      fireEvent.click(prButton);
+
+      // Should convert issue URL to PR URL
+      expect(mockWindowOpen).toHaveBeenCalledWith(
+        'https://github.com/test/repo/pull/126',
+        '_blank',
+        'noopener,noreferrer'
+      );
+    });
+
+    it('does not trigger issue expansion when clicking PR icon', () => {
+      render(
+        <IssuesList
+          issues={[mockIssues[2]]}
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const prButton = screen.getByTitle('Open pull request in new tab');
+      fireEvent.click(prButton);
+
+      // Issue body should not be visible (not expanded)
+      expect(screen.queryByText('This is a pull request')).not.toBeInTheDocument();
+      
+      // onSelectIssue should not have been called
+      expect(mockOnSelectIssue).not.toHaveBeenCalled();
+    });
+
+    it('handles keyboard interaction for PR icon (Enter key)', () => {
+      render(
+        <IssuesList
+          issues={[mockIssues[2]]}
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const prButton = screen.getByTitle('Open pull request in new tab');
+      fireEvent.keyDown(prButton, { key: 'Enter' });
+
+      expect(mockWindowOpen).toHaveBeenCalledWith(
+        'https://github.com/test/repo/pull/125',
+        '_blank',
+        'noopener,noreferrer'
+      );
+    });
+
+    it('handles keyboard interaction for PR icon (Space key)', () => {
+      render(
+        <IssuesList
+          issues={[mockIssues[2]]}
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const prButton = screen.getByTitle('Open pull request in new tab');
+      fireEvent.keyDown(prButton, { key: ' ' });
+
+      expect(mockWindowOpen).toHaveBeenCalledWith(
+        'https://github.com/test/repo/pull/125',
+        '_blank',
+        'noopener,noreferrer'
+      );
+    });
+
+    it('ignores other keys on PR icon', () => {
+      render(
+        <IssuesList
+          issues={[mockIssues[2]]}
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const prButton = screen.getByTitle('Open pull request in new tab');
+      fireEvent.keyDown(prButton, { key: 'Tab' });
+
+      expect(mockWindowOpen).not.toHaveBeenCalled();
+    });
+
+    it('PR icon has proper accessibility attributes', () => {
+      render(
+        <IssuesList
+          issues={[mockIssues[2]]}
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const prButton = screen.getByTitle('Open pull request in new tab');
+      expect(prButton).toHaveAttribute('aria-label', 'Open pull request in new tab');
     });
   });
 });
