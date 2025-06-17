@@ -92,7 +92,7 @@ describe('/api/github/issues', () => {
         issues: {
           listForRepo: mockListForRepo,
         },
-      } as any;
+      } as unknown as Octokit['rest'];
 
       const req = new NextRequest('http://localhost:3000/api/github/issues?state=open&sort=created');
       const response = await GET(req);
@@ -131,7 +131,7 @@ describe('/api/github/issues', () => {
         issues: {
           listForRepo: jest.fn().mockRejectedValue(new Error('API Error')),
         },
-      } as any;
+      } as unknown as Octokit['rest'];
 
       const req = new NextRequest('http://localhost:3000/api/github/issues');
       const response = await GET(req);
@@ -220,7 +220,7 @@ describe('/api/github/issues', () => {
           get: mockGet,
           listComments: mockListComments,
         },
-      } as any;
+      } as unknown as Octokit['rest'];
 
       const req = new NextRequest('http://localhost:3000/api/github/issues', {
         method: 'POST',
