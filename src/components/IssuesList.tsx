@@ -42,7 +42,7 @@ export const IssuesList: React.FC<IssuesListProps> = ({
     }
   };
 
-  const handleCopyUrl = async (e: React.MouseEvent, issue: GitHubIssue) => {
+  const handleCopyUrl = async (e: React.MouseEvent | React.KeyboardEvent, issue: GitHubIssue) => {
     e.stopPropagation(); // Prevent triggering the issue click
     
     try {
@@ -70,7 +70,7 @@ export const IssuesList: React.FC<IssuesListProps> = ({
           setCopiedIssueId(null);
         }, 2000);
       } catch {
-        console.error('Failed to copy URL:', err);
+        console.error('Failed to copy URL');
       }
       
       document.body.removeChild(textArea);
@@ -189,7 +189,7 @@ export const IssuesList: React.FC<IssuesListProps> = ({
                         if (e.key === 'Enter' || e.key === ' ') {
                           e.preventDefault();
                           e.stopPropagation();
-                          handleCopyUrl(e as React.MouseEvent, issue);
+                          handleCopyUrl(e, issue);
                         }
                       }}
                       className="flex-shrink-0 p-1 rounded hover:bg-accent/20 transition-colors"
