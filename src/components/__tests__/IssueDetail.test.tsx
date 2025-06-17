@@ -14,6 +14,15 @@ jest.mock('../ui/Card', () => ({
   Card: ({ children, className, ...props }: { children: React.ReactNode; className?: string } & React.HTMLAttributes<HTMLDivElement>) => <div className={className} {...props}>{children}</div>
 }));
 
+// Mock the MergePRButton component
+jest.mock('../MergePRButton', () => ({
+  MergePRButton: ({ repoOwner, repoName }: { repoOwner: string; repoName: string }) => (
+    <div data-testid="merge-pr-button">
+      Merge PR Button - {repoOwner}/{repoName}
+    </div>
+  ),
+}));
+
 // Mock fetch
 global.fetch = jest.fn();
 
@@ -193,5 +202,53 @@ describe('IssueDetail', () => {
 
     const card = screen.getByRole('article', { name: 'Issue: Test Issue Title' });
     expect(card).toHaveClass('p-4', 'sm:p-6');
+  });
+
+  describe('MergePRButton integration', () => {
+    const mockPRIssue: GitHubIssue = {
+      ...mockIssue,
+      pull_request: {
+        url: 'https://api.github.com/repos/owner/repo/pulls/123',
+        html_url: 'https://github.com/owner/repo/pull/123',
+        diff_url: 'https://github.com/owner/repo/pull/123.diff',
+        patch_url: 'https://github.com/owner/repo/pull/123.patch',
+        merged_at: null,
+      },
+    };
+
+    const mockRepository = {
+      owner: 'testowner',
+      name: 'testrepo',
+    };
+
+    it('renders MergePRButton for pull requests when repository info is provided', () => {
+      render(<IssueDetail issue={mockPRIssue} repository={mockRepository} />);
+
+      expect(screen.getByTestId('merge-pr-button')).toBeInTheDocument();
+      expect(screen.getByText('Merge PR Button - testowner/testrepo')).toBeInTheDocument();
+    });
+
+    it('does not render MergePRButton for regular issues', () => {
+      render(<IssueDetail issue={mockIssue} repository={mockRepository} />);
+
+      expect(screen.queryByTestId('merge-pr-button')).not.toBeInTheDocument();
+    });
+
+    it('does not render MergePRButton when repository info is not provided', () => {
+      render(<IssueDetail issue={mockPRIssue} />);
+
+      expect(screen.queryByTestId('merge-pr-button')).not.toBeInTheDocument();
+    });
+
+    it('does not render MergePRButton when pull_request is boolean', () => {
+      const issueWithBooleanPR = {
+        ...mockIssue,
+        pull_request: true,
+      };
+      
+      render(<IssueDetail issue={issueWithBooleanPR} repository={mockRepository} />);
+
+      expect(screen.queryByTestId('merge-pr-button')).not.toBeInTheDocument();
+    });
   });
 });
