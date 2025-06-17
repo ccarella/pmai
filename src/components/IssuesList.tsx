@@ -205,10 +205,8 @@ export const IssuesList: React.FC<IssuesListProps> = ({
                       className="overflow-hidden"
                     >
                       <div className="pt-3 mt-3 border-t border-border">
-                        <div className="prose prose-sm max-w-none text-foreground/80">
-                          <ReactMarkdown
-                            className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
-                          >
+                        <div className="prose prose-sm max-w-none text-foreground/80 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+                          <ReactMarkdown>
                             {issue.body}
                           </ReactMarkdown>
                         </div>

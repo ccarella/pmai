@@ -15,17 +15,17 @@ jest.mock('next-auth/react', () => ({
 jest.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: { children: React.ReactNode; [key: string]: unknown }) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       const { whileHover, whileTap, animate, initial, exit, transition, ...htmlProps } = props as any;
       return <div {...htmlProps}>{children}</div>;
     },
     button: ({ children, onClick, ...props }: React.PropsWithChildren<React.ButtonHTMLAttributes<HTMLButtonElement>>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       const { whileHover, whileTap, animate, initial, exit, transition, ...htmlProps } = props as any;
       return <button onClick={onClick} {...htmlProps}>{children}</button>;
     },
     span: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       const { whileHover, whileTap, animate, initial, exit, transition, ...htmlProps } = props as any;
       return <span {...htmlProps}>{children}</span>;
     },

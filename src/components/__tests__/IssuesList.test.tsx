@@ -6,7 +6,7 @@ import { GitHubIssue } from '@/lib/types/github';
 // Mock framer-motion to avoid animation issues in tests
 jest.mock('framer-motion', () => ({
   motion: {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
     div: ({ children, layout, initial, animate, variants, ...props }: any) => {
       // Filter out framer-motion specific props
       const cleanProps = { ...props };
