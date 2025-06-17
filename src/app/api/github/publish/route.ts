@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { githubConnections } from '@/lib/redis'
 import { publishToGitHubWithRetry } from '@/lib/github/publishIssue'
 import { isGitHubAuthConfigured, isRedisConfigured } from '@/lib/auth-config'
+import { generateAutoTitle } from '@/lib/services/auto-title-generation'
 
 export async function POST(request: NextRequest) {
   // Check if GitHub auth is configured
@@ -21,14 +22,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { title, body, labels, assignees } = await request.json()
+    const { title: originalTitle, body, labels, assignees } = await request.json()
 
-    if (!title || !body) {
+    if (!body) {
       return NextResponse.json(
-        { error: 'Title and body are required' },
+        { error: 'Body is required' },
         { status: 400 }
       )
     }
+
+    // Generate title automatically if not provided or is generic
+    const titleResult = await generateAutoTitle(body, originalTitle)
+    const finalTitle = titleResult.title
 
     const connection = await githubConnections.get(session.user.id)
     
@@ -47,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await publishToGitHubWithRetry({
-      title,
+      title: finalTitle,
       body,
       labels,
       assignees,
@@ -66,6 +71,8 @@ export async function POST(request: NextRequest) {
       success: true,
       issueUrl: result.issueUrl,
       issueNumber: result.issueNumber,
+      generatedTitle: titleResult.isGenerated ? finalTitle : undefined,
+      alternatives: titleResult.alternatives,
     })
   } catch (error) {
     console.error('Error in publish API:', error)

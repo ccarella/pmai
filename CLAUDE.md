@@ -76,13 +76,19 @@ src/
 1. **Multi-step Form Wizard**: Progressive form with validation
 2. **Issue Type Support**: Feature, Bug, Epic, Technical Debt
 3. **AI Enhancement**: Integration for generating acceptance criteria
-4. **Form Persistence**: LocalStorage-based form data saving
-5. **Markdown Generation**: Creates GitHub-ready issue content
-6. **Claude Prompt Generation**: Optimized prompts for AI assistance
-7. **GitHub Integration**: OAuth authentication and direct issue publishing
+4. **Automatic Title Generation**: Intelligent title generation without manual interaction
+   - AI-powered title generation using OpenAI's GPT-4
+   - Fallback to text processing when AI is unavailable
+   - Automatic detection and replacement of generic titles
+   - Integration with both SmartPrompt form and GitHub publishing
+5. **Form Persistence**: LocalStorage-based form data saving
+6. **Markdown Generation**: Creates GitHub-ready issue content
+7. **Claude Prompt Generation**: Optimized prompts for AI assistance
+8. **GitHub Integration**: OAuth authentication and direct issue publishing
    - NextAuth.js v4 for GitHub OAuth (requires OAuth App, not GitHub App)
    - Repository selector with private repo support
    - Direct "Publish to GitHub" from preview page
+   - Automatic title generation during GitHub issue creation
    - Upstash Redis for storing GitHub connection data
 
 ## Testing Strategy

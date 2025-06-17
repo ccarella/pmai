@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AIEnhancementService } from '@/lib/services/ai-enhancement';
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/utils/rate-limit';
+import { generateAutoTitle } from '@/lib/services/auto-title-generation';
 import { z } from 'zod';
 
 // Initialize AI service (singleton pattern)
@@ -69,10 +70,10 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Handle title fallback
-    const finalTitle = validatedData.title?.trim() || validatedData.prompt.slice(0, 60).trim();
+    // Generate title automatically if not provided or is generic
+    const titleResult = await generateAutoTitle(validatedData.prompt, validatedData.title);
     const processedData = {
-      title: finalTitle,
+      title: titleResult.title,
       prompt: validatedData.prompt.trim(),
     };
 
@@ -86,6 +87,8 @@ export async function POST(request: NextRequest) {
         {
           ...basicResponse,
           original: processedData.prompt,
+          generatedTitle: titleResult.isGenerated ? titleResult.title : undefined,
+          titleAlternatives: titleResult.alternatives,
         },
         {
           status: 200,
@@ -119,6 +122,8 @@ export async function POST(request: NextRequest) {
       ...enhanced,
       original: processedData.prompt,
       usage: updatedUsage,
+      generatedTitle: titleResult.isGenerated ? titleResult.title : undefined,
+      titleAlternatives: titleResult.alternatives,
     };
     
 
