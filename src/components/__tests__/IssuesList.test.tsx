@@ -1,20 +1,30 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { IssuesList } from '../IssuesList';
 import { GitHubIssue } from '@/lib/types/github';
 
 // Mock framer-motion to avoid animation issues in tests
 jest.mock('framer-motion', () => ({
   motion: {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-    div: ({ children, layout, initial, animate, variants, ...props }: any) => {
+    div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => {
       // Filter out framer-motion specific props
-      const cleanProps = { ...props };
-      delete cleanProps.whileHover;
-      delete cleanProps.whileTap;
-      delete cleanProps.transition;
-      delete cleanProps.exit;
+      const cleanProps: Record<string, unknown> = {};
+      Object.keys(props).forEach(key => {
+        if (!['layout', 'initial', 'animate', 'exit', 'variants', 'whileHover', 'whileTap', 'transition'].includes(key)) {
+          cleanProps[key] = props[key];
+        }
+      });
       return <div {...cleanProps}>{children}</div>;
+    },
+    svg: ({ children, ...props }: React.PropsWithChildren<React.SVGProps<SVGSVGElement>>) => {
+      // Filter out framer-motion specific props
+      const cleanProps: Record<string, unknown> = {};
+      Object.keys(props).forEach(key => {
+        if (!['initial', 'animate', 'exit', 'variants', 'transition'].includes(key)) {
+          cleanProps[key] = props[key];
+        }
+      });
+      return <svg {...cleanProps}>{children}</svg>;
     },
   },
   AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
@@ -25,6 +35,36 @@ jest.mock('react-markdown', () => ({
   __esModule: true,
   default: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
 }));
+
+// Mock the Card component
+jest.mock('../ui/Card', () => ({
+  Card: ({ children, className }: { children: React.ReactNode; className?: string }) => (
+    <div className={className}>{children}</div>
+  ),
+}));
+
+// Mock animation libs
+jest.mock('@/lib/animations/hooks', () => ({
+  useMousePosition: () => ({ x: 0, y: 0 }),
+}));
+
+jest.mock('@/lib/animations/utils', () => ({
+  calculate3DRotation: () => ({ rotateX: 0, rotateY: 0 }),
+}));
+
+jest.mock('@/lib/animations/variants', () => ({
+  cardVariants: {},
+  successCheck: {},
+}));
+
+// Mock clipboard API
+const mockWriteText = jest.fn();
+Object.defineProperty(navigator, 'clipboard', {
+  value: {
+    writeText: mockWriteText,
+  },
+  writable: true,
+});
 
 describe('IssuesList', () => {
   const mockIssues: GitHubIssue[] = [
@@ -71,6 +111,7 @@ describe('IssuesList', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockWriteText.mockClear();
   });
 
   it('renders empty state when no issues', () => {
@@ -240,5 +281,160 @@ describe('IssuesList', () => {
 
     // Should not show any body content
     expect(screen.queryByText('This is the body content')).not.toBeInTheDocument();
+  });
+
+  describe('Copy URL functionality', () => {
+    beforeEach(() => {
+      mockWriteText.mockClear();
+    });
+
+    it('renders copy button for each issue', () => {
+      render(
+        <IssuesList
+          issues={mockIssues}
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const copyButtons = screen.getAllByTitle('Copy GitHub URL');
+      expect(copyButtons).toHaveLength(mockIssues.length);
+    });
+
+    it('copies issue URL to clipboard on button click', async () => {
+      mockWriteText.mockResolvedValueOnce(undefined);
+
+      render(
+        <IssuesList
+          issues={mockIssues}
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const copyButton = screen.getAllByTitle('Copy GitHub URL')[0];
+      fireEvent.click(copyButton);
+
+      expect(mockWriteText).toHaveBeenCalledWith('https://github.com/test/repo/issues/123');
+    });
+
+    it('shows success feedback after copying', async () => {
+      mockWriteText.mockResolvedValueOnce(undefined);
+
+      render(
+        <IssuesList
+          issues={mockIssues}
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const copyButton = screen.getAllByTitle('Copy GitHub URL')[0];
+      fireEvent.click(copyButton);
+
+      // Wait for the success state
+      expect(await screen.findByTitle('Copied!')).toBeInTheDocument();
+      expect(await screen.findByLabelText('URL copied!')).toBeInTheDocument();
+    });
+
+    it('does not trigger issue expansion when clicking copy button', () => {
+      mockWriteText.mockResolvedValueOnce(undefined);
+
+      render(
+        <IssuesList
+          issues={mockIssues}
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const copyButton = screen.getAllByTitle('Copy GitHub URL')[0];
+      fireEvent.click(copyButton);
+
+      // Issue body should not be visible (not expanded)
+      expect(screen.queryByText('This is the body content of test issue 1')).not.toBeInTheDocument();
+      
+      // onSelectIssue should not have been called
+      expect(mockOnSelectIssue).not.toHaveBeenCalled();
+    });
+
+    it('handles keyboard interaction for copy button', () => {
+      mockWriteText.mockResolvedValueOnce(undefined);
+
+      render(
+        <IssuesList
+          issues={mockIssues}
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const copyButton = screen.getAllByTitle('Copy GitHub URL')[0];
+      
+      // Press Enter on copy button
+      fireEvent.keyDown(copyButton, { key: 'Enter' });
+      expect(mockWriteText).toHaveBeenCalledWith('https://github.com/test/repo/issues/123');
+      
+      // Clear mock
+      mockWriteText.mockClear();
+      
+      // Press Space on copy button
+      fireEvent.keyDown(copyButton, { key: ' ' });
+      expect(mockWriteText).toHaveBeenCalledWith('https://github.com/test/repo/issues/123');
+    });
+
+    it('fallsback to execCommand when clipboard API is not available', async () => {
+      // Mock clipboard API to throw error
+      mockWriteText.mockRejectedValueOnce(new Error('Clipboard API not available'));
+      
+      // Mock document.execCommand
+      const mockExecCommand = jest.fn(() => true);
+      document.execCommand = mockExecCommand;
+
+      render(
+        <IssuesList
+          issues={mockIssues}
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const copyButton = screen.getAllByTitle('Copy GitHub URL')[0];
+      fireEvent.click(copyButton);
+
+      // Wait for the fallback to execute
+      await waitFor(() => {
+        expect(mockExecCommand).toHaveBeenCalledWith('copy');
+      });
+    });
+
+    it('handles copy failure gracefully', async () => {
+      // Mock both clipboard API and execCommand to fail
+      mockWriteText.mockRejectedValueOnce(new Error('Clipboard API not available'));
+      document.execCommand = jest.fn(() => {
+        throw new Error('execCommand failed');
+      });
+      
+      // Mock console.error to verify error is logged
+      const mockConsoleError = jest.spyOn(console, 'error').mockImplementation();
+
+      render(
+        <IssuesList
+          issues={mockIssues}
+          selectedIssue={null}
+          onSelectIssue={mockOnSelectIssue}
+        />
+      );
+
+      const copyButton = screen.getAllByTitle('Copy GitHub URL')[0];
+      fireEvent.click(copyButton);
+
+      // Wait for the error to be logged
+      await waitFor(() => {
+        expect(mockConsoleError).toHaveBeenCalledWith('Failed to copy URL:', expect.any(Error));
+      });
+      
+      mockConsoleError.mockRestore();
+    });
   });
 });

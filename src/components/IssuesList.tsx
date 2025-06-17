@@ -19,6 +19,7 @@ export const IssuesList: React.FC<IssuesListProps> = ({
   onSelectIssue,
 }) => {
   const [expandedIssueId, setExpandedIssueId] = useState<number | null>(null);
+  const [copiedIssueId, setCopiedIssueId] = useState<number | null>(null);
   
   // Respect user's motion preferences
   const prefersReducedMotion = typeof window !== 'undefined' && 
@@ -38,6 +39,41 @@ export const IssuesList: React.FC<IssuesListProps> = ({
     } else {
       setExpandedIssueId(issue.id);
       onSelectIssue(issue);
+    }
+  };
+
+  const handleCopyUrl = async (e: React.MouseEvent | React.KeyboardEvent, issue: GitHubIssue) => {
+    e.stopPropagation(); // Prevent triggering the issue click
+    
+    try {
+      await navigator.clipboard.writeText(issue.html_url);
+      setCopiedIssueId(issue.id);
+      
+      // Reset the copied state after 2 seconds
+      setTimeout(() => {
+        setCopiedIssueId(null);
+      }, 2000);
+    } catch {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = issue.html_url;
+      textArea.style.position = 'fixed';
+      textArea.style.left = '-999999px';
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      try {
+        document.execCommand('copy');
+        setCopiedIssueId(issue.id);
+        setTimeout(() => {
+          setCopiedIssueId(null);
+        }, 2000);
+      } catch {
+        console.error('Failed to copy URL');
+      }
+      
+      document.body.removeChild(textArea);
     }
   };
 
@@ -145,6 +181,60 @@ export const IssuesList: React.FC<IssuesListProps> = ({
                         </svg>
                       </div>
                     )}
+                    
+                    {/* Copy URL Button */}
+                    <button
+                      onClick={(e) => handleCopyUrl(e, issue)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleCopyUrl(e, issue);
+                        }
+                      }}
+                      className="flex-shrink-0 p-1 rounded hover:bg-accent/20 transition-colors"
+                      aria-label={copiedIssueId === issue.id ? 'URL copied!' : `Copy GitHub URL for issue ${issue.title}`}
+                      title={copiedIssueId === issue.id ? 'Copied!' : 'Copy GitHub URL'}
+                    >
+                      <AnimatePresence mode="wait">
+                        {copiedIssueId === issue.id ? (
+                          <motion.svg
+                            key="check"
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="w-4 h-4 text-green-500"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M5 13l4 4L19 7"
+                            />
+                          </motion.svg>
+                        ) : (
+                          <motion.svg
+                            key="copy"
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="w-4 h-4 text-muted-foreground hover:text-foreground"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                          >
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                          </motion.svg>
+                        )}
+                      </AnimatePresence>
+                    </button>
                     
                     {/* Expand/Collapse Indicator */}
                     <motion.div
