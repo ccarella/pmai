@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { IssuesList } from '@/components/IssuesList';
 import { IssueDetail } from '@/components/IssueDetail';
@@ -12,74 +12,29 @@ import Link from 'next/link';
 import { GitHubIssue } from '@/lib/types/github';
 import { useRepositoryChange } from '@/hooks/useRepositoryChange';
 import { usePullToRefresh } from '@/hooks/usePullToRefresh';
+import { useIssuesPagination } from '@/hooks/useIssuesPagination';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 export default function IssuesPage() {
   const { status } = useSession();
-  const [issues, setIssues] = useState<GitHubIssue[]>([]);
   const [selectedIssue, setSelectedIssue] = useState<GitHubIssue | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [repository, setRepository] = useState<{ owner: string; name: string } | null>(null);
-  const [filters, setFilters] = useState({
-    state: 'open',
-    sort: 'created',
-    direction: 'desc'
-  });
-
-  const fetchIssues = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const queryParams = new URLSearchParams({
-        state: filters.state,
-        sort: filters.sort,
-        direction: filters.direction
-      });
-
-      const response = await fetch(`/api/github/issues?${queryParams}`);
-      
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to fetch issues');
-      }
-
-      const data = await response.json();
-      setIssues(data.issues);
-      setRepository(data.repository);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  }, [filters]);
+  
+  const {
+    issues,
+    loading,
+    error,
+    hasMore,
+    filters,
+    repository,
+    fetchMore,
+    refresh,
+    setFilters,
+  } = useIssuesPagination();
 
   // Pull-to-refresh handler
   const handleRefresh = useCallback(async () => {
-    // Don't set loading to true for pull-to-refresh to avoid showing spinner
-    setError(null);
-
-    const queryParams = new URLSearchParams({
-      state: filters.state,
-      sort: filters.sort,
-      direction: filters.direction
-    });
-
-    try {
-      const response = await fetch(`/api/github/issues?${queryParams}`);
-      
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to fetch issues');
-      }
-
-      const data = await response.json();
-      setIssues(data.issues);
-      setRepository(data.repository);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    }
-  }, [filters]);
+    await refresh();
+  }, [refresh]);
 
   const { containerRef, isRefreshing, pullDistance, isPulling } = usePullToRefresh({
     onRefresh: handleRefresh,
@@ -87,19 +42,13 @@ export default function IssuesPage() {
     refreshTimeout: 1000,
   });
 
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetchIssues();
-    }
-  }, [status, fetchIssues]);
-
   // Listen for repository changes and refetch issues
   useRepositoryChange(() => {
     if (status === 'authenticated') {
       setSelectedIssue(null); // Clear selected issue
-      fetchIssues();
+      refresh();
     }
-  }, [status, fetchIssues]);
+  }, [status, refresh]);
 
   if (status === 'loading') {
     return (
@@ -141,7 +90,7 @@ export default function IssuesPage() {
             </Link>
           )}
           {error !== 'No repository selected' && (
-            <Button onClick={fetchIssues}>
+            <Button onClick={refresh}>
               Try Again
             </Button>
           )}
@@ -173,15 +122,31 @@ export default function IssuesPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1">
-            <div className="mb-4">
+            <div className="mb-4 space-y-2">
               <select
                 value={filters.state}
-                onChange={(e) => setFilters({ ...filters, state: e.target.value })}
+                onChange={(e) => setFilters({ state: e.target.value })}
                 className="w-full px-3 py-2 rounded-md bg-card-bg border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                aria-label="Filter issues by state"
               >
                 <option value="open">Open Issues</option>
                 <option value="closed">Closed Issues</option>
                 <option value="all">All Issues</option>
+              </select>
+              
+              <select
+                value={`${filters.sort}-${filters.direction}`}
+                onChange={(e) => {
+                  const [sort, direction] = e.target.value.split('-');
+                  setFilters({ sort, direction });
+                }}
+                className="w-full px-3 py-2 rounded-md bg-card-bg border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+                aria-label="Sort issues"
+              >
+                <option value="created-desc">Newest First</option>
+                <option value="created-asc">Oldest First</option>
+                <option value="updated-desc">Recently Updated</option>
+                <option value="comments-desc">Most Commented</option>
               </select>
             </div>
 
@@ -190,11 +155,32 @@ export default function IssuesPage() {
                 <LoadingSpinner />
               </div>
             ) : (
-              <IssuesList
-                issues={issues}
-                selectedIssue={selectedIssue}
-                onSelectIssue={setSelectedIssue}
-              />
+              <div className="overflow-auto max-h-[calc(100vh-300px)]" id="scrollableDiv">
+                <InfiniteScroll
+                  dataLength={issues.length}
+                  next={fetchMore}
+                  hasMore={hasMore}
+                  loader={
+                    <div className="flex justify-center py-4">
+                      <LoadingSpinner size="sm" />
+                    </div>
+                  }
+                  scrollableTarget="scrollableDiv"
+                  endMessage={
+                    issues.length > 0 ? (
+                      <p className="text-center py-4 text-muted-foreground text-sm">
+                        No more issues to load
+                      </p>
+                    ) : null
+                  }
+                >
+                  <IssuesList
+                    issues={issues}
+                    selectedIssue={selectedIssue}
+                    onSelectIssue={setSelectedIssue}
+                  />
+                </InfiniteScroll>
+              </div>
             )}
           </div>
 
