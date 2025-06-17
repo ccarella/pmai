@@ -83,43 +83,47 @@ export default function CreateIssuePage() {
       
       // Check if skip review is enabled and we have a selected repo
       if (skipReview && selectedRepo && session?.user) {
-        // Directly publish to GitHub
+        // Create async job for direct publishing (we already have the generated content)
         try {
-          const publishResponse = await fetch('/api/github/publish', {
+          const jobResponse = await fetch('/api/jobs/create', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
               title: result.generatedTitle || data.title,
-              body: result.markdown,
+              prompt: data.prompt,
               repository: selectedRepo,
-              labels: [result.summary.type],
+              // Include the already generated content to avoid duplicate AI calls
+              generatedContent: {
+                markdown: result.markdown,
+                summary: result.summary,
+              },
             }),
           });
 
-          if (!publishResponse.ok) {
-            const publishError = await publishResponse.json();
-            throw new Error(publishError.error || 'Failed to publish to GitHub');
+          if (!jobResponse.ok) {
+            const jobError = await jobResponse.json();
+            throw new Error(jobError.error || 'Failed to create job');
           }
 
-          const publishResult = await publishResponse.json();
+          const jobResult = await jobResponse.json();
           
           // Show success toast
-          showToast('Issue published successfully!', 'success');
+          showToast('Publishing to GitHub in background. You can close this page.', 'success');
           
-          // Store the result for the success page
-          localStorage.setItem('published-issue', JSON.stringify({
-            issueUrl: publishResult.issueUrl,
+          // Store job ID for the success page to track
+          localStorage.setItem('async-job', JSON.stringify({
+            jobId: jobResult.jobId,
             repository: selectedRepo,
-            title: result.generatedTitle || data.title,
+            createdAt: new Date().toISOString(),
           }));
           
-          // Navigate to success page
-          router.push('/create/success');
-        } catch (publishError) {
-          console.error('Error publishing to GitHub:', publishError);
-          // If publishing fails, fall back to preview page
+          // Navigate to job tracking page
+          router.push('/create/processing');
+        } catch (jobError) {
+          console.error('Error creating job:', jobError);
+          // If job creation fails, fall back to synchronous flow
           localStorage.setItem('created-issue', JSON.stringify(result));
           router.push('/preview');
         }
