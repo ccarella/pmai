@@ -146,7 +146,7 @@ export default function IssuesPage() {
 
         <div className="lg:col-span-2">
           {selectedIssue ? (
-            <IssueDetail issue={selectedIssue} />
+            <IssueDetail issue={selectedIssue} repository={repository} />
           ) : (
             <Card className="p-8 text-center">
               <p className="text-muted-foreground">

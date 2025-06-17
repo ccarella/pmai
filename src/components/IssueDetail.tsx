@@ -5,14 +5,16 @@ import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { LoadingSpinner } from './ui/LoadingSpinner';
 import { GitHubMarkdown } from './ui/GitHubMarkdown';
+import { MergePRButton } from './MergePRButton';
 import { formatDistanceToNow } from 'date-fns';
 import { GitHubIssue, GitHubComment } from '@/lib/types/github';
 
 interface IssueDetailProps {
   issue: GitHubIssue;
+  repository?: { owner: string; name: string };
 }
 
-export const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
+export const IssueDetail: React.FC<IssueDetailProps> = ({ issue, repository }) => {
   const [comments, setComments] = useState<GitHubComment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -181,6 +183,19 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
           <div className="text-red-500 text-sm mt-4">
             Error loading comments: {error}
           </div>
+        )}
+        
+        {/* Merge PR Button - only shown for pull requests when repository info is available */}
+        {repository && issue.pull_request && (
+          <MergePRButton
+            issue={issue}
+            repoOwner={repository.owner}
+            repoName={repository.name}
+            onMergeSuccess={() => {
+              // Optionally refresh the page or update the issue state
+              window.location.reload();
+            }}
+          />
         )}
       </div>
     </Card>
