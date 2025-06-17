@@ -192,8 +192,8 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ issue, repository }) =
             repoOwner={repository.owner}
             repoName={repository.name}
             onMergeSuccess={() => {
-              // Optionally refresh the page or update the issue state
-              window.location.reload();
+              // The parent component will handle refreshing the data
+              // through context or props update
             }}
           />
         )}

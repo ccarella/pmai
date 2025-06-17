@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { GitHubIssue } from '@/lib/types/github';
+import { useRepositoryChange } from '@/hooks/useRepositoryChange';
 
 export default function IssuesPage() {
   const { status } = useSession();
@@ -53,6 +54,14 @@ export default function IssuesPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
+      fetchIssues();
+    }
+  }, [status, fetchIssues]);
+
+  // Listen for repository changes and refetch issues
+  useRepositoryChange(() => {
+    if (status === 'authenticated') {
+      setSelectedIssue(null); // Clear selected issue
       fetchIssues();
     }
   }, [status, fetchIssues]);

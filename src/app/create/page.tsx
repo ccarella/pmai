@@ -11,6 +11,8 @@ import Link from 'next/link';
 import { useOnboardingGuard } from '@/lib/hooks/useOnboardingGuard';
 import { useSession } from 'next-auth/react';
 import { showToast } from '@/components/ui/Toast';
+import { useRepository } from '@/contexts/RepositoryContext';
+import { useRepositoryChange } from '@/hooks/useRepositoryChange';
 
 export default function CreateIssuePage() {
   const router = useRouter();
@@ -19,18 +21,23 @@ export default function CreateIssuePage() {
   const [error, setError] = useState<string | null>(null);
   const [requiresApiKey, setRequiresApiKey] = useState(false);
   const [skipReview, setSkipReview] = useState(false);
-  const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
+  const { selectedRepo } = useRepository();
   
   // Check onboarding status
   useOnboardingGuard();
 
   useEffect(() => {
-    // Fetch skip review setting and selected repo if user is signed in
+    // Fetch skip review setting if user is signed in
     if (session?.user?.id) {
       fetchSkipReviewSetting();
-      fetchSelectedRepo();
     }
   }, [session]);
+
+  // Listen for repository changes
+  useRepositoryChange(() => {
+    // Repository has changed - any necessary cleanup or state updates can go here
+    // The selectedRepo from context will automatically update
+  });
 
   const fetchSkipReviewSetting = async () => {
     try {
@@ -44,17 +51,6 @@ export default function CreateIssuePage() {
     }
   };
 
-  const fetchSelectedRepo = async () => {
-    try {
-      const response = await fetch('/api/github/selected-repo');
-      if (response.ok) {
-        const data = await response.json();
-        setSelectedRepo(data.selectedRepo);
-      }
-    } catch (error) {
-      console.error('Error fetching selected repo:', error);
-    }
-  };
 
   const handleSubmit = async (data: { title: string; prompt: string }) => {
     setIsSubmitting(true);
