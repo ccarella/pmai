@@ -3,7 +3,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import styles from '../styles/github-markdown.module.css';
+import styles from '@/components/styles/github-markdown.module.css';
 
 interface GitHubMarkdownProps {
   content: string;
