@@ -12,9 +12,6 @@ jest.mock('@/components/RepositorySwitcher', () => ({
   RepositorySwitcher: () => <div>Repository Switcher</div>,
 }));
 
-jest.mock('@/components/ui/ThemeToggle', () => ({
-  ThemeToggleButton: () => <button>Theme Toggle</button>,
-}));
 
 const mockUsePathname = usePathname as jest.MockedFunction<typeof usePathname>;
 
@@ -104,25 +101,26 @@ describe('Header', () => {
     expect(screen.getByText('Repository Switcher')).toBeInTheDocument();
   });
 
-  it('should render theme toggle button', () => {
+  it('should not render settings icon in header', () => {
     render(
       <SessionProvider session={null}>
         <Header />
       </SessionProvider>
     );
 
-    expect(screen.getByText('Theme Toggle')).toBeInTheDocument();
+    const settingsIcon = screen.queryByTitle('Settings');
+    expect(settingsIcon).not.toBeInTheDocument();
   });
 
-  it('should render settings icon link', () => {
+  it('should render settings tab in navigation', () => {
     render(
       <SessionProvider session={null}>
         <Header />
       </SessionProvider>
     );
 
-    const settingsIcon = screen.getByTitle('Settings');
-    expect(settingsIcon).toBeInTheDocument();
-    expect(settingsIcon).toHaveAttribute('href', '/settings');
+    const settingsTab = screen.getByRole('link', { name: 'Settings' });
+    expect(settingsTab).toBeInTheDocument();
+    expect(settingsTab).toHaveAttribute('href', '/settings');
   });
 });
