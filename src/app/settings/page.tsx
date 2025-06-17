@@ -81,6 +81,22 @@ export default function SettingsPage() {
           </div>
         </Card>
 
+        {session && (
+          <Card className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+            <div className="space-y-4">
+              <h2 className="text-xl sm:text-2xl font-semibold text-foreground">OpenAI Configuration</h2>
+              <p className="text-sm sm:text-base text-muted">
+                Configure your personal OpenAI API key for AI-enhanced features
+              </p>
+              <Link href="/settings/openai">
+                <Button variant="secondary" className="w-full sm:w-auto">
+                  Manage OpenAI Settings
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        )}
+
         <Card className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           <div className="space-y-4">
             <h2 className="text-xl sm:text-2xl font-semibold text-foreground">GitHub Connection</h2>
@@ -181,6 +197,24 @@ export default function SettingsPage() {
             )}
           </div>
         </Card>
+
+        {session && (
+          <Card className="p-4 sm:p-6">
+            <div className="space-y-4">
+              <h2 className="text-xl sm:text-2xl font-semibold text-foreground">Account</h2>
+              <p className="text-sm sm:text-base text-muted">
+                Sign out from your account
+              </p>
+              <Button
+                variant="secondary"
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="w-full sm:w-auto"
+              >
+                Sign Out
+              </Button>
+            </div>
+          </Card>
+        )}
 
         <div className="text-center">
           <Link href="/">

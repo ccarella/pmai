@@ -3,20 +3,28 @@ import { AIEnhancementService } from '@/lib/services/ai-enhancement';
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/utils/rate-limit';
 import { IssueFormData } from '@/lib/types/issue';
 import { getDefaultEnhancements } from '@/lib/utils/default-enhancements';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { userProfiles } from '@/lib/services/user-storage';
 
-// Initialize AI service (singleton pattern)
-let aiService: AIEnhancementService | null = null;
-
-function getAIService(): AIEnhancementService | null {
-  if (!aiService) {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      // Return null if API key not configured - will use defaults
-      return null;
+// Function to get AI service with user-specific API key
+async function getAIService(userId?: string): Promise<AIEnhancementService | null> {
+  // First try to get user-specific API key
+  if (userId) {
+    const userApiKey = await userProfiles.getOpenAIKey(userId);
+    if (userApiKey) {
+      return new AIEnhancementService(userApiKey);
     }
-    aiService = new AIEnhancementService(apiKey);
   }
-  return aiService;
+  
+  // Fall back to system API key if available
+  const systemApiKey = process.env.OPENAI_API_KEY;
+  if (systemApiKey) {
+    return new AIEnhancementService(systemApiKey);
+  }
+  
+  // No API key available
+  return null;
 }
 
 // Validate form data
@@ -36,6 +44,10 @@ function validateFormData(data: unknown): data is { formData: IssueFormData } {
 
 export async function POST(request: NextRequest) {
   try {
+    // Get user session
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
+
     // Check rate limit
     const rateLimitRequests = parseInt(process.env.RATE_LIMIT_REQUESTS_PER_HOUR || '20');
     const rateLimit = await checkRateLimit(request, rateLimitRequests);
@@ -66,8 +78,8 @@ export async function POST(request: NextRequest) {
 
     const { formData } = body;
 
-    // Get AI service
-    const service = getAIService();
+    // Get AI service with user-specific API key
+    const service = await getAIService(userId);
     
     // If no service available (no API key), return default enhancements
     if (!service) {
@@ -107,6 +119,15 @@ export async function POST(request: NextRequest) {
     
     // Get updated usage stats
     const updatedUsage = service.getUsageStats();
+    
+    // Track usage stats for authenticated user
+    if (userId && updatedUsage.totalTokens > 0) {
+      await userProfiles.updateUsageStats(
+        userId,
+        updatedUsage.totalTokens,
+        updatedUsage.estimatedCost
+      );
+    }
 
     // Return success response with rate limit headers
     return NextResponse.json(
@@ -146,8 +167,23 @@ export async function GET(request: NextRequest) {
   const rateLimitRequests = parseInt(process.env.RATE_LIMIT_REQUESTS_PER_HOUR || '20');
   const rateLimit = await checkRateLimit(request, rateLimitRequests);
   
-  const service = getAIService();
-  const usage = service ? service.getUsageStats() : { totalTokens: 0, requestCount: 0, estimatedCost: 0 };
+  // Get user session
+  const session = await getServerSession(authOptions);
+  const userId = session?.user?.id;
+  
+  // Get user's usage stats
+  let usage = { totalTokens: 0, requestCount: 0, estimatedCost: 0 };
+  if (userId) {
+    const profile = await userProfiles.get(userId);
+    if (profile?.usageStats) {
+      usage = {
+        totalTokens: profile.usageStats.totalTokens,
+        requestCount: 0, // Not tracked at user level currently
+        estimatedCost: profile.usageStats.totalCost,
+      };
+    }
+  }
+  
   const maxMonthlyCost = parseFloat(process.env.MAX_MONTHLY_COST_USD || '10');
   
   return NextResponse.json(
