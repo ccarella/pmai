@@ -22,11 +22,6 @@ interface FormErrors {
   prompt?: string;
 }
 
-interface TitleSuggestion {
-  title: string;
-  alternatives?: string[];
-  isGenerated: boolean;
-}
 
 export const SmartPromptForm: React.FC<SmartPromptFormProps> = ({
   onSubmit,
@@ -37,10 +32,6 @@ export const SmartPromptForm: React.FC<SmartPromptFormProps> = ({
     prompt: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
-  const [titleSuggestions, setTitleSuggestions] = useState<TitleSuggestion | null>(null);
-  const [isGeneratingTitle, setIsGeneratingTitle] = useState(false);
-  const [showTitleSuggestions, setShowTitleSuggestions] = useState(false);
-  const [titleGenerationError, setTitleGenerationError] = useState<string | null>(null);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -94,82 +85,8 @@ export const SmartPromptForm: React.FC<SmartPromptFormProps> = ({
       }));
     }
 
-    // Hide suggestions when user manually edits title
-    if (field === 'title' && showTitleSuggestions) {
-      setShowTitleSuggestions(false);
-    }
-
-    // Clear title generation error when user edits prompt
-    if (field === 'prompt' && titleGenerationError) {
-      setTitleGenerationError(null);
-    }
   };
 
-  const generateTitle = async () => {
-    if (!formData.prompt.trim() || formData.prompt.length < 10) {
-      setErrors(prev => ({ ...prev, prompt: 'Please enter a more detailed message to generate a title' }));
-      return;
-    }
-
-    setIsGeneratingTitle(true);
-    setTitleGenerationError(null);
-    
-    try {
-      const response = await fetch('/api/generate-title', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt: formData.prompt }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        if (response.status === 429) {
-          throw new Error(errorData?.error || 'Rate limit exceeded. Please try again later.');
-        }
-        throw new Error(errorData?.error || 'Failed to generate title');
-      }
-
-      const result: TitleSuggestion = await response.json();
-      
-      // Check if there was a warning from the API (e.g., cost limit reached)
-      if ('warning' in result) {
-        setTitleGenerationError(result.warning as string);
-      }
-      
-      setTitleSuggestions(result);
-      setShowTitleSuggestions(true);
-      
-      // Auto-populate the main title suggestion
-      setFormData(prev => ({
-        ...prev,
-        title: result.title,
-      }));
-      
-    } catch (error) {
-      console.error('Title generation failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to generate title';
-      setTitleGenerationError(errorMessage);
-      
-      // Fallback to first 60 characters of prompt
-      const fallbackTitle = formData.prompt.slice(0, 60).trim();
-      setFormData(prev => ({
-        ...prev,
-        title: fallbackTitle,
-      }));
-    } finally {
-      setIsGeneratingTitle(false);
-    }
-  };
-
-  const selectTitleSuggestion = (title: string) => {
-    setFormData(prev => ({
-      ...prev,
-      title,
-    }));
-    setShowTitleSuggestions(false);
-  };
 
   return (
     <motion.div
@@ -185,17 +102,6 @@ export const SmartPromptForm: React.FC<SmartPromptFormProps> = ({
               <label htmlFor="title" className="block text-sm font-medium text-foreground">
                 Name <span className="text-muted">(optional)</span>
               </label>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={generateTitle}
-                disabled={isSubmitting || isGeneratingTitle || !formData.prompt.trim()}
-                loading={isGeneratingTitle}
-                className="text-xs"
-              >
-                {isGeneratingTitle ? 'Generating...' : 'Generate Title'}
-              </Button>
             </div>
             <Input
               id="title"
@@ -210,38 +116,8 @@ export const SmartPromptForm: React.FC<SmartPromptFormProps> = ({
               <p className="mt-1 text-sm text-red-500">{errors.title}</p>
             )}
             
-            {/* Title Generation Error */}
-            {titleGenerationError && (
-              <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-sm text-red-600">{titleGenerationError}</p>
-              </div>
-            )}
-            
-            {/* Title Suggestions */}
-            {showTitleSuggestions && titleSuggestions && titleSuggestions.alternatives && titleSuggestions.alternatives.length > 0 && (
-              <div className="mt-2 p-3 bg-muted/50 rounded-md border">
-                <p className="text-xs text-muted mb-2">Alternative suggestions:</p>
-                <div className="flex flex-wrap gap-1">
-                  {titleSuggestions.alternatives.map((suggestion, index) => (
-                    <button
-                      key={index}
-                      type="button"
-                      onClick={() => selectTitleSuggestion(suggestion)}
-                      className="text-xs px-2 py-1 bg-background border rounded hover:bg-accent text-foreground transition-colors"
-                      disabled={isSubmitting}
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            
             <p className="mt-1 text-xs text-muted">
-              {formData.prompt.trim().length >= 10 
-                ? 'Click "Generate Title" for AI suggestions, or leave empty to use the first 60 characters of your message'
-                : 'Enter a detailed message above to enable AI title generation'
-              }
+              Leave empty to auto-generate a title from your message when publishing to GitHub
             </p>
           </div>
 

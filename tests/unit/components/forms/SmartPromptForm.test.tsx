@@ -393,7 +393,6 @@ describe('SmartPromptForm', () => {
       expect(screen.getByLabelText(/name/i)).toBeDisabled();
       expect(screen.getByLabelText(/message/i)).toBeDisabled();
       expect(screen.getByRole('button', { name: /creating issue/i })).toBeDisabled();
-      expect(screen.getByRole('button', { name: /generate title/i })).toBeDisabled();
     });
 
     it('should show creating state in submit button', () => {

@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server';
+import { POST } from '@/app/api/create-issue/route';
 
 // Mock modules first before any imports
 jest.mock('@/lib/services/ai-enhancement', () => ({
@@ -14,6 +15,12 @@ jest.mock('@/lib/utils/rate-limit', () => ({
     'X-RateLimit-Limit': '20',
     'X-RateLimit-Remaining': '19',
     'X-RateLimit-Reset': new Date(Date.now() + 3600000).toISOString(),
+  })),
+}));
+jest.mock('@/lib/services/auto-title-generation', () => ({
+  generateAutoTitle: jest.fn(() => Promise.resolve({
+    title: 'Generated Title',
+    isGenerated: true,
   })),
 }));
 
