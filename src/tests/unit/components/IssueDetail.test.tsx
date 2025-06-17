@@ -81,7 +81,7 @@ describe('IssueDetail', () => {
   it('should render GitHub link', () => {
     render(<IssueDetail issue={mockIssue} />);
 
-    const githubLink = screen.getByText('Open in GitHub').closest('a');
+    const githubLink = screen.getByText('GitHub').closest('a');
     expect(githubLink).toHaveAttribute('href', 'https://github.com/test/repo/issues/1');
     expect(githubLink).toHaveAttribute('target', '_blank');
   });
