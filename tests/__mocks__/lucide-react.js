@@ -8,4 +8,5 @@ module.exports = {
   Check: createIcon('check-icon'),
   ChevronRight: createIcon('chevron-right-icon'),
   X: createIcon('x-icon'),
+  RefreshCw: createIcon('refresh-cw-icon'),
 };
