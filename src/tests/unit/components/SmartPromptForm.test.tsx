@@ -205,7 +205,7 @@ describe('SmartPromptForm', () => {
   it('shows helper text for title field', () => {
     render(<SmartPromptForm onSubmit={mockOnSubmit} />);
     
-    expect(screen.getByText(/if empty, we'll use the first 60 characters/i)).toBeInTheDocument();
+    expect(screen.getByText(/leave empty to auto-generate a title/i)).toBeInTheDocument();
   });
 
   it('shows helper text for prompt field', () => {

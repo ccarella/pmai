@@ -1,11 +1,12 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { IssuesList } from '../IssuesList';
 import { GitHubIssue } from '@/lib/types/github';
 
 // Mock framer-motion to avoid animation issues in tests
 jest.mock('framer-motion', () => ({
   motion: {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     div: ({ children, layout, initial, animate, variants, ...props }: any) => {
       // Filter out framer-motion specific props
       const cleanProps = { ...props };
@@ -16,13 +17,13 @@ jest.mock('framer-motion', () => ({
       return <div {...cleanProps}>{children}</div>;
     },
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: React.PropsWithChildren) => <>{children}</>,
 }));
 
 // Mock react-markdown
 jest.mock('react-markdown', () => ({
   __esModule: true,
-  default: ({ children }: any) => <div>{children}</div>,
+  default: ({ children }: React.PropsWithChildren) => <div>{children}</div>,
 }));
 
 describe('IssuesList', () => {

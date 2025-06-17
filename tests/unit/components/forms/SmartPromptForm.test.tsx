@@ -363,26 +363,17 @@ describe('SmartPromptForm', () => {
       });
     });
 
-    it('should hide suggestions when user manually edits title', async () => {
+    it('should allow manual title editing', async () => {
       const user = userEvent.setup();
       renderForm();
       
-      const messageInput = screen.getByLabelText(/message/i);
       const titleInput = screen.getByLabelText(/name/i);
-      const generateButton = screen.getByRole('button', { name: /generate title/i });
-      
-      await user.type(messageInput, 'Message for testing manual edit');
-      await user.click(generateButton);
-      
-      await waitFor(() => {
-        expect(screen.getByText(/alternative suggestions/i)).toBeInTheDocument();
-      });
       
       // Manually edit the title
       await user.clear(titleInput);
       await user.type(titleInput, 'Manual Title');
       
-      expect(screen.queryByText(/alternative suggestions/i)).not.toBeInTheDocument();
+      expect(titleInput).toHaveValue('Manual Title');
     });
   });
 

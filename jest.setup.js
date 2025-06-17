@@ -40,3 +40,8 @@ global.PointerEvent = class PointerEvent extends MouseEvent {
     this.isPrimary = props?.isPrimary || false
   }
 }
+
+// Mock animation utils
+jest.mock('@/lib/animations/utils', () => ({
+  getRippleOrigin: jest.fn(() => ({ x: 50, y: 50 }))
+}))
