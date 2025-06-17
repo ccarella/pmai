@@ -4,9 +4,14 @@ export class EncryptionConfig {
   private static instance: EncryptionConfig
   private encryptionKey: string
   private isInitialized = false
+  private isBuildPhase = false
 
   private constructor() {
     this.encryptionKey = ''
+    // Detect if we're in the build phase
+    this.isBuildPhase = process.env.NODE_ENV === 'production' && 
+                       typeof window === 'undefined' && 
+                       !process.env.ENCRYPTION_KEY
   }
 
   static getInstance(): EncryptionConfig {
@@ -22,6 +27,14 @@ export class EncryptionConfig {
     const key = process.env.ENCRYPTION_KEY
 
     if (!key) {
+      // During build phase, use a placeholder key
+      if (this.isBuildPhase) {
+        console.warn('⚠️  Using placeholder key during build phase')
+        this.encryptionKey = '0'.repeat(64) // Valid format placeholder
+        this.isInitialized = true
+        return
+      }
+      
       console.error('⚠️  ENCRYPTION_KEY is not set!')
       console.error('Run "npm run generate-key" to generate a secure encryption key.')
       console.error('Then add it to your .env.local file or environment variables.')
@@ -39,7 +52,9 @@ export class EncryptionConfig {
       )
     } else {
       this.encryptionKey = key
-      console.log('✅ Encryption key loaded successfully')
+      if (!this.isBuildPhase) {
+        console.log('✅ Encryption key loaded successfully')
+      }
     }
 
     this.isInitialized = true
