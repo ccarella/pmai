@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useSession } from 'next-auth/react';
 import IssuesPage from '@/app/issues/page';
-import { GitHubIssue } from '@/lib/types/github';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
