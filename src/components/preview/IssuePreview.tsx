@@ -8,6 +8,7 @@ import { useAIEnhancement } from '@/lib/hooks/useAIEnhancement';
 import { generateMarkdown } from '@/lib/templates/markdown';
 import { generateClaudePrompt } from '@/lib/templates/claude-prompt';
 import { PublishButton } from '@/components/PublishButton';
+import Link from 'next/link';
 
 interface IssuePreviewProps {
   formData: Partial<IssueFormData>;
@@ -22,7 +23,7 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
   const [activeTab, setActiveTab] = useState<'markdown' | 'claude'>('markdown');
   const [copied, setCopied] = useState(false);
   
-  const { enhance, enhancements, isLoading, error } = useAIEnhancement();
+  const { enhance, enhancements, isLoading, error, requiresApiKey } = useAIEnhancement();
   
   useEffect(() => {
     if (formData.type && formData.title && formData.description) {
@@ -60,8 +61,21 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
           
           {error && (
             <div className="mb-4 p-4 bg-error/10 border border-error/30 rounded-md">
-              <p className="text-error font-medium">Failed to enhance issue: {error}</p>
-              <p className="text-sm text-error/80 mt-1">Using default template instead.</p>
+              <p className="text-error font-medium">
+                {requiresApiKey ? 'AI Enhancement Unavailable' : 'Failed to enhance issue'}: {error}
+              </p>
+              {requiresApiKey ? (
+                <div className="mt-2">
+                  <p className="text-sm text-error/80">Using default template instead.</p>
+                  <Link href="/settings/openai">
+                    <Button variant="secondary" size="sm" className="mt-2">
+                      Configure OpenAI API Key
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <p className="text-sm text-error/80 mt-1">Using default template instead.</p>
+              )}
             </div>
           )}
           

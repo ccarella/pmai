@@ -5,13 +5,20 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { SmartPromptForm } from '@/components/forms/SmartPromptForm';
 import { pageVariants } from '@/lib/animations/variants';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import Link from 'next/link';
 
 export default function CreateIssuePage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [requiresApiKey, setRequiresApiKey] = useState(false);
 
   const handleSubmit = async (data: { title: string; prompt: string }) => {
     setIsSubmitting(true);
+    setError(null);
+    setRequiresApiKey(false);
     
     try {
       const response = await fetch('/api/create-issue', {
@@ -22,11 +29,16 @@ export default function CreateIssuePage() {
         body: JSON.stringify(data),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create issue');
-      }
-
       const result = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 403 && result.requiresApiKey) {
+          setRequiresApiKey(true);
+          setError(result.message || 'OpenAI API key required');
+          return;
+        }
+        throw new Error(result.error || 'Failed to create issue');
+      }
       
       // Store the result and navigate to preview
       localStorage.setItem('created-issue', JSON.stringify(result));
@@ -34,7 +46,7 @@ export default function CreateIssuePage() {
       
     } catch (error) {
       console.error('Error creating issue:', error);
-      // Handle error - could show toast notification
+      setError(error instanceof Error ? error.message : 'An error occurred');
     } finally {
       setIsSubmitting(false);
     }
@@ -67,6 +79,33 @@ export default function CreateIssuePage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
       >
+        {requiresApiKey && (
+          <Card className="p-6 mb-6 bg-warning/10 border-warning/30">
+            <div className="flex items-start gap-3">
+              <svg className="w-6 h-6 text-warning mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <div className="flex-1">
+                <h3 className="font-semibold text-warning mb-1">OpenAI API Key Required</h3>
+                <p className="text-sm text-muted mb-3">
+                  To use AI-powered issue generation, you need to configure your personal OpenAI API key.
+                </p>
+                <Link href="/settings/openai">
+                  <Button variant="primary" size="sm">
+                    Configure API Key
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </Card>
+        )}
+        
+        {error && !requiresApiKey && (
+          <Card className="p-4 mb-6 bg-error/10 border-error/30">
+            <p className="text-error font-medium">Error: {error}</p>
+          </Card>
+        )}
+        
         <SmartPromptForm 
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
