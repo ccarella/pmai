@@ -4,6 +4,7 @@ import { POST as VALIDATE } from '@/app/api/user/openai-key/validate/route'
 import { NextRequest } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { userProfiles } from '@/lib/services/user-storage'
+import { resetOnboarding } from '@/lib/services/onboarding'
 
 // Mock dependencies
 jest.mock('next-auth', () => ({
@@ -17,6 +18,10 @@ jest.mock('@/lib/services/user-storage', () => ({
     get: jest.fn(),
     getOpenAIKey: jest.fn(),
   }
+}))
+
+jest.mock('@/lib/services/onboarding', () => ({
+  resetOnboarding: jest.fn(),
 }))
 
 jest.mock('openai', () => ({
@@ -102,6 +107,7 @@ describe('/api/user/openai-key', () => {
       expect(response.status).toBe(200)
       expect(data.success).toBe(true)
       expect(userProfiles.removeOpenAIKey).toHaveBeenCalledWith('user123')
+      expect(resetOnboarding).toHaveBeenCalledWith('user123')
     })
 
     it('should require authentication', async () => {
@@ -117,6 +123,7 @@ describe('/api/user/openai-key', () => {
       expect(response.status).toBe(401)
       expect(data.error).toBe('Unauthorized')
       expect(userProfiles.removeOpenAIKey).not.toHaveBeenCalled()
+      expect(resetOnboarding).not.toHaveBeenCalled()
     })
   })
 

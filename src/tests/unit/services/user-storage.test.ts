@@ -7,6 +7,7 @@ jest.mock('@/lib/redis', () => ({
     get: jest.fn(),
     set: jest.fn(),
     del: jest.fn(),
+    hdel: jest.fn(),
   }
 }))
 
@@ -148,6 +149,7 @@ describe('UserProfiles Service', () => {
       const setCall = (redis.set as jest.Mock).mock.calls[0][1]
       expect(setCall.openaiApiKey).toBeUndefined()
       expect(setCall.openaiKeyAddedAt).toBeUndefined()
+      expect(redis.hdel).toHaveBeenCalledWith('onboarding:user123', 'completedAt')
     })
   })
 

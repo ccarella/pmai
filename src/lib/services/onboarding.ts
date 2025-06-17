@@ -84,6 +84,10 @@ export async function skipOnboarding(userId: string): Promise<void> {
   });
 }
 
+export async function resetOnboarding(userId: string): Promise<void> {
+  await redis.hdel(`onboarding:${userId}`, 'completedAt');
+}
+
 export function getOnboardingSteps(status: OnboardingStatus): OnboardingStep[] {
   const steps: OnboardingStep[] = [
     {

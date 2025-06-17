@@ -8,6 +8,7 @@ jest.mock('@/lib/redis', () => ({
     get: jest.fn(),
     set: jest.fn(),
     del: jest.fn(),
+    hdel: jest.fn(),
   },
 }))
 
@@ -139,6 +140,7 @@ describe('userProfiles', () => {
       const savedProfile = (redis.set as jest.Mock).mock.calls[0][1]
       expect(savedProfile.openaiApiKey).toBeUndefined()
       expect(savedProfile.openaiKeyAddedAt).toBeUndefined()
+      expect(redis.hdel).toHaveBeenCalledWith(`onboarding:${mockUserId}`, 'completedAt')
     })
 
     it('should do nothing if profile does not exist', async () => {
@@ -147,6 +149,7 @@ describe('userProfiles', () => {
       await userProfiles.removeOpenAIKey(mockUserId)
 
       expect(redis.set).not.toHaveBeenCalled()
+      expect(redis.hdel).toHaveBeenCalledWith(`onboarding:${mockUserId}`, 'completedAt')
     })
   })
 
