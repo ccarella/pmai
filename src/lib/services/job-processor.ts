@@ -3,7 +3,7 @@ import { generateAutoTitle } from './auto-title-generation';
 import { publishToGitHubWithRetry } from '@/lib/github/publishIssue';
 import { githubConnections } from '@/lib/redis';
 import { OpenAI } from 'openai';
-import { userStorageService } from './user-storage';
+import { userProfiles } from './user-storage';
 
 export class JobProcessor {
   async processCreateAndPublishIssue(
@@ -25,7 +25,7 @@ export class JobProcessor {
         summary = payload.generatedContent.summary;
       } else {
         // Generate issue content using AI
-        const openAIKey = await userStorageService.getOpenAIKey(userId);
+        const openAIKey = await userProfiles.getOpenAIKey(userId);
         if (!openAIKey) {
           throw new Error('OpenAI API key not found');
         }
@@ -57,8 +57,10 @@ Return ONLY valid JSON with the structure: { "markdown": "...", "summary": { "ty
         markdown = issueData.markdown;
         summary = issueData.summary;
 
-        // Track usage only if we generated new content
-        await userStorageService.updateUsageStats(userId, 'create-issue');
+        // Track usage - estimate tokens based on response
+        const estimatedTokens = Math.ceil((markdown.length + responseContent.length) / 4);
+        const estimatedCost = estimatedTokens * 0.00001; // Rough estimate for gpt-4o-mini
+        await userProfiles.updateUsageStats(userId, estimatedTokens, estimatedCost);
       }
 
       // Generate title
