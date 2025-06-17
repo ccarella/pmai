@@ -10,7 +10,7 @@ interface GitHubMarkdownProps {
   className?: string;
 }
 
-export const GitHubMarkdown: React.FC<GitHubMarkdownProps> = ({ content, className = '' }) => {
+export const GitHubMarkdown = React.memo<GitHubMarkdownProps>(({ content, className = '' }) => {
   return (
     <div className={`${styles.markdown} ${className}`}>
       <ReactMarkdown 
@@ -75,4 +75,6 @@ export const GitHubMarkdown: React.FC<GitHubMarkdownProps> = ({ content, classNa
       </ReactMarkdown>
     </div>
   );
-};
+});
+
+GitHubMarkdown.displayName = 'GitHubMarkdown';
