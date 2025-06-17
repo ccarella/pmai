@@ -120,7 +120,7 @@ export class JobQueue {
     const jobIds = await redis.zrange(PENDING_JOBS_KEY, 0, 0);
     if (!jobIds || jobIds.length === 0) return null;
 
-    const jobId = jobIds[0];
+    const jobId = jobIds[0] as string;
     const job = await this.getJob(jobId);
     
     if (!job) {
@@ -135,7 +135,7 @@ export class JobQueue {
   async getUserJobs(userId: string, limit = 10): Promise<Job[]> {
     const jobIds = await redis.lrange(`${USER_JOBS_KEY_PREFIX}${userId}`, 0, limit - 1);
     const jobs = await Promise.all(
-      jobIds.map(id => this.getJob(id))
+      jobIds.map(id => this.getJob(id as string))
     );
     
     return jobs.filter((job): job is Job => job !== null);
