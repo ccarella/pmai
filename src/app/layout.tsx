@@ -4,6 +4,7 @@ import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { OnboardingProvider } from "@/components/providers/OnboardingProvider";
+import { RepositoryProvider } from "@/contexts/RepositoryContext";
 import { Header } from "@/components/Header";
 import { ToastContainer } from "@/components/ui/Toast";
 
@@ -58,14 +59,16 @@ export default function RootLayout({
         <ThemeProvider defaultTheme="system">
           <SessionProvider>
             <OnboardingProvider>
-              <Header />
-              <ToastContainer />
-              <div className="relative min-h-screen pt-[104px]">
-                <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card-bg opacity-50 pointer-events-none" />
-                <div className="relative z-10">
-                  {children}
+              <RepositoryProvider>
+                <Header />
+                <ToastContainer />
+                <div className="relative min-h-screen pt-[104px]">
+                  <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card-bg opacity-50 pointer-events-none" />
+                  <div className="relative z-10">
+                    {children}
+                  </div>
                 </div>
-              </div>
+              </RepositoryProvider>
             </OnboardingProvider>
           </SessionProvider>
         </ThemeProvider>

@@ -2,11 +2,18 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useSession } from 'next-auth/react';
 import { RepositorySwitcher } from '../RepositorySwitcher';
+import { RepositoryProvider } from '@/contexts/RepositoryContext';
+import { useRouter } from 'next/navigation';
 import '@testing-library/jest-dom';
 
 // Mock next-auth
 jest.mock('next-auth/react', () => ({
   useSession: jest.fn(),
+}));
+
+// Mock next navigation
+jest.mock('next/navigation', () => ({
+  useRouter: jest.fn(),
 }));
 
 // Mock fetch
@@ -23,10 +30,23 @@ jest.mock('next/link', () => {
 });
 
 describe('RepositorySwitcher', () => {
+  const mockRouter = {
+    refresh: jest.fn(),
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
     (fetch as jest.Mock).mockClear();
+    (useRouter as jest.Mock).mockReturnValue(mockRouter);
   });
+
+  const renderWithProvider = (ui: React.ReactElement) => {
+    return render(
+      <RepositoryProvider>
+        {ui}
+      </RepositoryProvider>
+    );
+  };
 
   it('should not render when user is not logged in', () => {
     (useSession as jest.Mock).mockReturnValue({
@@ -34,7 +54,7 @@ describe('RepositorySwitcher', () => {
       status: 'unauthenticated',
     });
 
-    const { container } = render(<RepositorySwitcher />);
+    const { container } = renderWithProvider(<RepositorySwitcher />);
     expect(container.firstChild).toBeNull();
   });
 
@@ -44,7 +64,7 @@ describe('RepositorySwitcher', () => {
       status: 'authenticated',
     });
 
-    const { container } = render(<RepositorySwitcher />);
+    const { container } = renderWithProvider(<RepositorySwitcher />);
     const loadingDiv = container.querySelector('.animate-pulse');
     expect(loadingDiv).toBeInTheDocument();
   });
@@ -74,7 +94,7 @@ describe('RepositorySwitcher', () => {
         }),
       });
 
-    render(<RepositorySwitcher />);
+    renderWithProvider(<RepositorySwitcher />);
 
     await waitFor(() => {
       expect(screen.getByText('repo-name')).toBeInTheDocument();
@@ -97,7 +117,7 @@ describe('RepositorySwitcher', () => {
         json: async () => ({ repositories: [] }),
       });
 
-    render(<RepositorySwitcher />);
+    renderWithProvider(<RepositorySwitcher />);
 
     await waitFor(() => {
       expect(screen.getByText('Select repository')).toBeInTheDocument();
@@ -120,7 +140,7 @@ describe('RepositorySwitcher', () => {
         json: async () => ({ repositories: [] }),
       });
 
-    render(<RepositorySwitcher />);
+    renderWithProvider(<RepositorySwitcher />);
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /switch repository/i })).toBeInTheDocument();
@@ -172,7 +192,7 @@ describe('RepositorySwitcher', () => {
         json: async () => ({ repositories: mockRepos }),
       });
 
-    render(<RepositorySwitcher />);
+    renderWithProvider(<RepositorySwitcher />);
 
     await waitFor(() => {
       expect(screen.getByText('repo-1')).toBeInTheDocument();
@@ -218,14 +238,10 @@ describe('RepositorySwitcher', () => {
         json: async () => ({ repositories: mockRepos }),
       });
 
-    // Mock window.location.reload
-    const reloadMock = jest.fn();
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: { reload: reloadMock },
-    });
+    // Mock window event dispatch
+    const eventListenerSpy = jest.spyOn(window, 'dispatchEvent');
 
-    render(<RepositorySwitcher />);
+    renderWithProvider(<RepositorySwitcher />);
 
     await waitFor(() => {
       expect(screen.getByText('repo-1')).toBeInTheDocument();
@@ -252,7 +268,13 @@ describe('RepositorySwitcher', () => {
       });
     });
 
-    expect(reloadMock).toHaveBeenCalled();
+    expect(mockRouter.refresh).toHaveBeenCalled();
+    expect(eventListenerSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'repository-switched',
+        detail: { repository: 'owner/repo-2' },
+      })
+    );
   });
 
   it('should show "Add repository" link', async () => {
@@ -271,7 +293,7 @@ describe('RepositorySwitcher', () => {
         json: async () => ({ repositories: [] }),
       });
 
-    render(<RepositorySwitcher />);
+    renderWithProvider(<RepositorySwitcher />);
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /switch repository/i })).toBeInTheDocument();
@@ -302,7 +324,7 @@ describe('RepositorySwitcher', () => {
         json: async () => ({ repositories: [] }),
       });
 
-    render(
+    renderWithProvider(
       <div>
         <RepositorySwitcher />
         <div data-testid="outside">Outside element</div>

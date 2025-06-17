@@ -11,11 +11,12 @@ import { fadeIn } from '@/lib/animations/variants'
 import Link from 'next/link'
 import { useOnboarding } from '@/components/providers/OnboardingProvider'
 import { getOnboardingSteps } from '@/lib/services/onboarding'
+import { useRepository } from '@/contexts/RepositoryContext'
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
   const { status: onboardingStatus, isComplete: isOnboardingComplete } = useOnboarding()
-  const [selectedRepo, setSelectedRepo] = useState<string | null>(null)
+  const { selectedRepo } = useRepository()
   const [loading, setLoading] = useState(false)
   const [githubConfigured, setGithubConfigured] = useState(true)
   const [skipReview, setSkipReview] = useState(false)
@@ -25,9 +26,8 @@ export default function SettingsPage() {
     // Check GitHub configuration status
     checkGitHubConfig()
     
-    // Fetch selected repository if user is signed in
+    // Fetch skip review setting if user is signed in
     if (session?.user?.id) {
-      fetchSelectedRepo()
       fetchSkipReviewSetting()
     }
   }, [session])
@@ -43,17 +43,6 @@ export default function SettingsPage() {
     }
   }
 
-  const fetchSelectedRepo = async () => {
-    try {
-      const response = await fetch('/api/github/selected-repo')
-      if (response.ok) {
-        const data = await response.json()
-        setSelectedRepo(data.selectedRepo)
-      }
-    } catch (error) {
-      console.error('Error fetching selected repo:', error)
-    }
-  }
 
   const fetchSkipReviewSetting = async () => {
     try {

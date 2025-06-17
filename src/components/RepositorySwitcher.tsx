@@ -1,15 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
-
-interface Repository {
-  id: number;
-  name: string;
-  full_name: string;
-  private: boolean;
-}
+import { useRepository } from '@/contexts/RepositoryContext';
 
 interface RepositorySwitcherProps {
   className?: string;
@@ -17,43 +11,11 @@ interface RepositorySwitcherProps {
 
 export const RepositorySwitcher: React.FC<RepositorySwitcherProps> = ({ className = '' }) => {
   const { data: session } = useSession();
-  const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
-  const [addedRepos, setAddedRepos] = useState<Repository[]>([]);
+  const { selectedRepo, addedRepos, isLoading, switchRepository } = useRepository();
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch selected repository and added repositories
-  useEffect(() => {
-    const fetchRepositoryData = async () => {
-      if (!session?.user) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        // Fetch selected repository
-        const selectedResponse = await fetch('/api/github/selected-repo');
-        if (selectedResponse.ok) {
-          const data = await selectedResponse.json();
-          setSelectedRepo(data.selectedRepo);
-        }
-
-        // Fetch added repositories
-        const reposResponse = await fetch('/api/github/added-repos');
-        if (reposResponse.ok) {
-          const data = await reposResponse.json();
-          setAddedRepos(data.repositories);
-        }
-      } catch (error) {
-        console.error('Error fetching repository data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchRepositoryData();
-  }, [session]);
+  // Repository data is now managed by context
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -69,18 +31,8 @@ export const RepositorySwitcher: React.FC<RepositorySwitcherProps> = ({ classNam
 
   const handleSelectRepository = async (repoFullName: string) => {
     try {
-      const response = await fetch('/api/github/repositories', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ selectedRepo: repoFullName }),
-      });
-
-      if (response.ok) {
-        setSelectedRepo(repoFullName);
-        setIsOpen(false);
-        // Reload the page to reflect the change
-        window.location.reload();
-      }
+      await switchRepository(repoFullName);
+      setIsOpen(false);
     } catch (error) {
       console.error('Error selecting repository:', error);
     }
