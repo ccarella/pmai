@@ -28,16 +28,16 @@ export function Switch({
         relative inline-flex h-6 w-11 items-center rounded-full
         transition-colors duration-200 ease-in-out
         focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2
-        ${checked ? 'bg-accent' : 'bg-input-bg'}
+        ${checked ? 'bg-accent' : 'bg-input-bg border border-border'}
         ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
         ${className}
       `}
     >
       <span
         className={`
-          inline-block h-4 w-4 transform rounded-full bg-white
+          inline-block h-4 w-4 transform rounded-full
           transition-transform duration-200 ease-in-out
-          ${checked ? 'translate-x-6' : 'translate-x-1'}
+          ${checked ? 'translate-x-6 bg-white' : 'translate-x-1 bg-muted'}
         `}
       />
     </button>
