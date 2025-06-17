@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ThemeToggle } from '@/components/ui/ThemeToggle'
+import { Switch } from '@/components/ui/Switch'
 import { motion } from 'framer-motion'
 import { fadeIn } from '@/lib/animations/variants'
 import Link from 'next/link'
@@ -17,6 +18,8 @@ export default function SettingsPage() {
   const [selectedRepo, setSelectedRepo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [githubConfigured, setGithubConfigured] = useState(true)
+  const [skipReview, setSkipReview] = useState(false)
+  const [skipReviewLoading, setSkipReviewLoading] = useState(false)
 
   useEffect(() => {
     // Check GitHub configuration status
@@ -25,6 +28,7 @@ export default function SettingsPage() {
     // Fetch selected repository if user is signed in
     if (session?.user?.id) {
       fetchSelectedRepo()
+      fetchSkipReviewSetting()
     }
   }, [session])
 
@@ -48,6 +52,41 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Error fetching selected repo:', error)
+    }
+  }
+
+  const fetchSkipReviewSetting = async () => {
+    try {
+      const response = await fetch('/api/user/skip-review')
+      if (response.ok) {
+        const data = await response.json()
+        setSkipReview(data.skipReview)
+      }
+    } catch (error) {
+      console.error('Error fetching skip review setting:', error)
+    }
+  }
+
+  const handleSkipReviewToggle = async (checked: boolean) => {
+    setSkipReviewLoading(true)
+    try {
+      const response = await fetch('/api/user/skip-review', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ skipReview: checked }),
+      })
+      
+      if (response.ok) {
+        setSkipReview(checked)
+      } else {
+        console.error('Failed to update skip review setting')
+      }
+    } catch (error) {
+      console.error('Error updating skip review setting:', error)
+    } finally {
+      setSkipReviewLoading(false)
     }
   }
 
@@ -115,6 +154,30 @@ export default function SettingsPage() {
             </div>
           </div>
         </Card>
+
+        {session && (
+          <Card className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+            <div className="space-y-4">
+              <h2 className="text-xl sm:text-2xl font-semibold text-foreground">Issue Creation</h2>
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <label htmlFor="skip-review" className="text-sm sm:text-base text-foreground font-medium">
+                    Skip Review
+                  </label>
+                  <p className="text-sm text-muted">
+                    Directly publish issues to GitHub without the review step
+                  </p>
+                </div>
+                <Switch
+                  id="skip-review"
+                  checked={skipReview}
+                  onCheckedChange={handleSkipReviewToggle}
+                  disabled={skipReviewLoading || !session}
+                />
+              </div>
+            </div>
+          </Card>
+        )}
 
         {session && (
           <Card className="p-4 sm:p-6 space-y-4 sm:space-y-6">

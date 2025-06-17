@@ -287,4 +287,74 @@ describe('userProfiles', () => {
       )
     })
   })
+
+  describe('updateSkipReview', () => {
+    it('should update skipReview setting for existing user', async () => {
+      ;(redis.get as jest.Mock).mockResolvedValue(mockProfile)
+
+      await userProfiles.updateSkipReview(mockUserId, true)
+
+      expect(redis.set).toHaveBeenCalledWith(
+        `user:${mockUserId}`,
+        expect.objectContaining({
+          ...mockProfile,
+          skipReview: true,
+          updatedAt: expect.any(String),
+        })
+      )
+    })
+
+    it('should create new profile when updating skipReview for non-existent user', async () => {
+      ;(redis.get as jest.Mock).mockResolvedValue(null)
+
+      await userProfiles.updateSkipReview(mockUserId, false)
+
+      expect(redis.set).toHaveBeenCalledWith(
+        `user:${mockUserId}`,
+        expect.objectContaining({
+          id: mockUserId,
+          email: '',
+          skipReview: false,
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+        })
+      )
+    })
+  })
+
+  describe('getSkipReview', () => {
+    it('should return true when skipReview is set to true', async () => {
+      ;(redis.get as jest.Mock).mockResolvedValue({
+        ...mockProfile,
+        skipReview: true,
+      })
+
+      const result = await userProfiles.getSkipReview(mockUserId)
+      expect(result).toBe(true)
+    })
+
+    it('should return false when skipReview is set to false', async () => {
+      ;(redis.get as jest.Mock).mockResolvedValue({
+        ...mockProfile,
+        skipReview: false,
+      })
+
+      const result = await userProfiles.getSkipReview(mockUserId)
+      expect(result).toBe(false)
+    })
+
+    it('should return false when skipReview is not set', async () => {
+      ;(redis.get as jest.Mock).mockResolvedValue(mockProfile)
+
+      const result = await userProfiles.getSkipReview(mockUserId)
+      expect(result).toBe(false)
+    })
+
+    it('should return false when user profile does not exist', async () => {
+      ;(redis.get as jest.Mock).mockResolvedValue(null)
+
+      const result = await userProfiles.getSkipReview(mockUserId)
+      expect(result).toBe(false)
+    })
+  })
 })

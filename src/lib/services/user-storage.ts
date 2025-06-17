@@ -9,6 +9,7 @@ export interface UserProfile {
   image?: string
   openaiApiKey?: string // Encrypted
   openaiKeyAddedAt?: string
+  skipReview?: boolean
   usageStats?: {
     totalTokens: number
     totalCost: number
@@ -152,5 +153,29 @@ export const userProfiles = {
     }
     
     await userProfiles.set(userId, profile)
+  },
+
+  async updateSkipReview(userId: string, skipReview: boolean): Promise<void> {
+    let profile = await userProfiles.get(userId)
+    
+    if (!profile) {
+      // Create a new profile if it doesn't exist
+      profile = {
+        id: userId,
+        email: '', // Will be updated on next login
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    }
+
+    profile.skipReview = skipReview
+    profile.updatedAt = new Date().toISOString()
+    
+    await userProfiles.set(userId, profile)
+  },
+
+  async getSkipReview(userId: string): Promise<boolean> {
+    const profile = await userProfiles.get(userId)
+    return profile?.skipReview || false
   }
 }
