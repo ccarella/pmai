@@ -14,11 +14,45 @@
   --dracula-red: #ff5555;
   --dracula-yellow: #f1fa8c;
   
-  /* Default to Dracula dark theme */
+  /* Light mode colors (Dracula-inspired light theme) */
+  --light-background: #f8f8f2;
+  --light-foreground: #282a36;
+  --light-card-bg: #ffffff;
+  --light-border: #e1e4e8;
+  --light-input-bg: #ffffff;
+  --light-accent: #9580ff;
+  --light-accent-hover: #7c63d8;
+  --light-secondary: #ff80bf;
+  --light-success: #45d97e;
+  --light-warning: #e0d561;
+  --light-error: #ff6666;
+  --light-info: #80deea;
+  --light-muted: #6272a4;
+}
+
+/* Default light theme */
+:root {
+  --background: var(--light-background);
+  --foreground: var(--light-foreground);
+  --card-bg: var(--light-card-bg);
+  --border: var(--light-border);
+  --input-bg: var(--light-input-bg);
+  --accent: var(--light-accent);
+  --accent-hover: var(--light-accent-hover);
+  --secondary: var(--light-secondary);
+  --success: var(--light-success);
+  --warning: var(--light-warning);
+  --error: var(--light-error);
+  --info: var(--light-info);
+  --muted: var(--light-muted);
+}
+
+/* Dark theme when .dark class is applied */
+.dark {
   --background: var(--dracula-background);
   --foreground: var(--dracula-foreground);
   --card-bg: var(--dracula-current-line);
-  --border: #44475a;
+  --border: var(--dracula-current-line);
   --input-bg: #21222c;
   --accent: var(--dracula-purple);
   --accent-hover: #9d7cd8;
@@ -28,6 +62,25 @@
   --error: var(--dracula-red);
   --info: var(--dracula-cyan);
   --muted: var(--dracula-comment);
+}
+
+/* Respect system preference when no manual override */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --background: var(--dracula-background);
+    --foreground: var(--dracula-foreground);
+    --card-bg: var(--dracula-current-line);
+    --border: var(--dracula-current-line);
+    --input-bg: #21222c;
+    --accent: var(--dracula-purple);
+    --accent-hover: #9d7cd8;
+    --secondary: var(--dracula-pink);
+    --success: var(--dracula-green);
+    --warning: var(--dracula-yellow);
+    --error: var(--dracula-red);
+    --info: var(--dracula-cyan);
+    --muted: var(--dracula-comment);
+  }
 }
 
 @theme inline {
@@ -46,25 +99,6 @@
   --color-muted: var(--muted);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    /* Light mode uses softer Dracula-inspired colors */
-    --background: #f8f8f2;
-    --foreground: #282a36;
-    --card-bg: #ffffff;
-    --border: #e1e4e8;
-    --input-bg: #ffffff;
-    --accent: #9580ff;
-    --accent-hover: #7c63d8;
-    --secondary: #ff80bf;
-    --success: #45d97e;
-    --warning: #e0d561;
-    --error: #ff6666;
-    --info: #80deea;
-    --muted: #6272a4;
-  }
 }
 
 body {

@@ -4,6 +4,7 @@ import { useSession, signIn, signOut } from 'next-auth/react'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { motion } from 'framer-motion'
 import { fadeIn } from '@/lib/animations/variants'
 import Link from 'next/link'
@@ -69,6 +70,16 @@ export default function SettingsPage() {
           <h1 className="text-4xl font-bold text-foreground">Settings</h1>
           <p className="text-muted">Connect your GitHub account to publish issues directly</p>
         </div>
+
+        <Card className="p-6 space-y-6">
+          <div className="space-y-4">
+            <h2 className="text-2xl font-semibold text-foreground">Appearance</h2>
+            <div className="space-y-2">
+              <p className="text-sm text-muted">Choose your preferred theme</p>
+              <ThemeToggle />
+            </div>
+          </div>
+        </Card>
 
         <Card className="p-6 space-y-6">
           <div className="space-y-4">
