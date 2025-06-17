@@ -232,3 +232,43 @@ export const heroText: Variants = {
     }
   }
 };
+
+// Expanding card animation for issue cards
+export const expandingCard: Variants = {
+  collapsed: {
+    height: 'auto',
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 30
+    }
+  },
+  expanded: {
+    height: 'auto',
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 30
+    }
+  }
+};
+
+// Issue body content animation
+export const issueBodyContent: Variants = {
+  collapsed: {
+    opacity: 0,
+    height: 0,
+    transition: {
+      opacity: { duration: 0.2 },
+      height: { duration: 0.3 }
+    }
+  },
+  expanded: {
+    opacity: 1,
+    height: 'auto',
+    transition: {
+      height: { duration: 0.3 },
+      opacity: { duration: 0.2, delay: 0.1 }
+    }
+  }
+};
