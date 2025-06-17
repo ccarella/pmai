@@ -7,7 +7,7 @@ const STORAGE_KEY = 'pmai-issue-form-data';
 const DEBOUNCE_DELAY = 1000; // Save after 1 second of inactivity
 
 export function useFormPersistence(formData: Partial<IssueFormData>) {
-  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     // Clear any existing timeout

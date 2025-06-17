@@ -8,9 +8,26 @@ jest.mock('next-auth/react');
 jest.mock('next/navigation');
 jest.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div>,
+    div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      const { whileHover, whileTap, animate, initial, exit, transition, ...htmlProps } = props as any;
+      return <div {...htmlProps}>{children}</div>;
+    },
+    button: ({ children, onClick, ...props }: React.PropsWithChildren<React.ButtonHTMLAttributes<HTMLButtonElement>>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      const { whileHover, whileTap, animate, initial, exit, transition, ...htmlProps } = props as any;
+      return <button onClick={onClick} {...htmlProps}>{children}</button>;
+    },
+    span: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      const { whileHover, whileTap, animate, initial, exit, transition, ...htmlProps } = props as any;
+      return <span {...htmlProps}>{children}</span>;
+    },
   },
   AnimatePresence: ({ children }: React.PropsWithChildren) => children,
+}));
+jest.mock('@radix-ui/react-slot', () => ({
+  Slot: ({ children }: React.PropsWithChildren) => children,
 }));
 
 const mockUseSession = useSession as jest.MockedFunction<typeof useSession>;
