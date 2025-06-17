@@ -4,9 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Card } from './ui/Card';
 import { Button } from './ui/Button';
 import { LoadingSpinner } from './ui/LoadingSpinner';
+import { GitHubMarkdown } from './ui/GitHubMarkdown';
 import { formatDistanceToNow } from 'date-fns';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { GitHubIssue, GitHubComment } from '@/lib/types/github';
 
 interface IssueDetailProps {
@@ -53,10 +52,10 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
   }, [issue]);
 
   return (
-    <Card className="p-6">
+    <Card className="p-4 sm:p-6" role="article" aria-label={`Issue: ${issue.title}`}>
       <div className="mb-6">
-        <div className="flex items-start justify-between mb-4">
-          <h2 className="text-2xl font-bold text-foreground pr-4">{issue.title}</h2>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground">{issue.title}</h2>
           <a
             href={issue.html_url}
             target="_blank"
@@ -82,7 +81,7 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
           </a>
         </div>
 
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <span
               className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -95,9 +94,13 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
             </span>
           </div>
           <span>#{issue.number}</span>
+          <span className="hidden sm:inline">•</span>
           <span>
-            opened {formatDistanceToNow(new Date(issue.created_at))} ago by{' '}
-            <span className="font-medium">{issue.user.login}</span>
+            <span className="hidden sm:inline">opened </span>
+            {formatDistanceToNow(new Date(issue.created_at))} ago
+            <span className="hidden sm:inline"> by{' '}
+              <span className="font-medium">{issue.user.login}</span>
+            </span>
           </span>
         </div>
 
@@ -120,30 +123,26 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
         )}
       </div>
 
-      <div className="border-t border-border pt-6">
-        <div className="flex items-start gap-4 mb-6">
+      <div className="border-t border-border pt-4 sm:pt-6" role="region" aria-label="Issue description">
+        <div className="flex items-start gap-3 sm:gap-4 mb-6">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={issue.user.avatar_url}
             alt={issue.user.login}
-            className="w-10 h-10 rounded-full"
+            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0"
           />
-          <div className="flex-grow">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="font-medium">{issue.user.login}</span>
-              <span className="text-sm text-muted-foreground">
+          <div className="flex-grow min-w-0">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="font-medium text-sm sm:text-base">{issue.user.login}</span>
+              <span className="text-xs sm:text-sm text-muted-foreground">
                 commented {formatDistanceToNow(new Date(issue.created_at))} ago
               </span>
             </div>
-            <div className="prose prose-invert max-w-none">
-              {issue.body ? (
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {issue.body}
-                </ReactMarkdown>
-              ) : (
-                <p className="text-muted-foreground italic">No description provided</p>
-              )}
-            </div>
+            {issue.body ? (
+              <GitHubMarkdown content={issue.body} />
+            ) : (
+              <p className="text-muted-foreground italic">No description provided</p>
+            )}
           </div>
         </div>
 
@@ -154,28 +153,24 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
         )}
 
         {!loading && comments.length > 0 && (
-          <div className="space-y-6">
-            <h3 className="font-semibold text-lg mb-4">Comments ({comments.length})</h3>
+          <div className="space-y-6" role="region" aria-label="Comments section">
+            <h3 className="font-semibold text-lg mb-4" id="comments-heading">Comments ({comments.length})</h3>
             {comments.map((comment) => (
-              <div key={comment.id} className="flex items-start gap-4">
+              <div key={comment.id} className="flex items-start gap-3 sm:gap-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={comment.user.avatar_url}
                   alt={comment.user.login}
-                  className="w-10 h-10 rounded-full"
+                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0"
                 />
-                <div className="flex-grow">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-medium">{comment.user.login}</span>
-                    <span className="text-sm text-muted-foreground">
+                <div className="flex-grow min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="font-medium text-sm sm:text-base">{comment.user.login}</span>
+                    <span className="text-xs sm:text-sm text-muted-foreground">
                       commented {formatDistanceToNow(new Date(comment.created_at))} ago
                     </span>
                   </div>
-                  <div className="prose prose-invert max-w-none">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {comment.body}
-                    </ReactMarkdown>
-                  </div>
+                  <GitHubMarkdown content={comment.body} />
                 </div>
               </div>
             ))}

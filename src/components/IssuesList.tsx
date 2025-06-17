@@ -4,8 +4,8 @@ import React, { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { GitHubIssue } from '@/lib/types/github';
 import { motion, AnimatePresence } from 'framer-motion';
-import ReactMarkdown from 'react-markdown';
 import { Card } from './ui/Card';
+import { GitHubMarkdown } from './ui/GitHubMarkdown';
 import { PRStatusIndicator } from './PRStatusIndicator';
 import { usePRStatuses } from '@/lib/hooks/usePRStatuses';
 
@@ -325,11 +325,10 @@ export const IssuesList: React.FC<IssuesListProps> = ({
                       className="overflow-hidden"
                     >
                       <div className="pt-3 mt-3 border-t border-border">
-                        <div className="prose prose-sm max-w-none text-foreground/80 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
-                          <ReactMarkdown>
-                            {issue.body}
-                          </ReactMarkdown>
-                        </div>
+                        <GitHubMarkdown 
+                          content={issue.body} 
+                          className="text-sm"
+                        />
                       </div>
                     </motion.div>
                   )}
