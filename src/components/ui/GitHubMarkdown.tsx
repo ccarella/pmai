@@ -27,12 +27,14 @@ export const GitHubMarkdown: React.FC<GitHubMarkdownProps> = ({ content, classNa
           li: ({children}) => <li className="leading-relaxed">{children}</li>,
           p: ({children}) => <p className="my-4 leading-relaxed">{children}</p>,
           blockquote: ({children}) => <blockquote className="border-l-4 border-accent/30 pl-4 my-4 text-muted-foreground italic">{children}</blockquote>,
-          code: ({inline, children}) => 
-            inline ? (
+          code: ({children, className}: {children?: React.ReactNode; className?: string}) => {
+            const inline = !className?.includes('language-');
+            return inline ? (
               <code className="px-1.5 py-0.5 rounded bg-accent/10 text-accent font-mono text-sm">{children}</code>
             ) : (
               <code className="block p-4 rounded-lg bg-card-bg border border-border font-mono text-sm overflow-x-auto">{children}</code>
-            ),
+            );
+          },
           pre: ({children}) => <pre className="my-4">{children}</pre>,
           a: ({href, children}) => (
             <a href={href} className="text-accent hover:underline" target="_blank" rel="noopener noreferrer">
