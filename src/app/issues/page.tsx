@@ -7,9 +7,11 @@ import { IssueDetail } from '@/components/IssueDetail';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import Link from 'next/link';
 import { GitHubIssue } from '@/lib/types/github';
 import { useRepositoryChange } from '@/hooks/useRepositoryChange';
+import { usePullToRefresh } from '@/hooks/usePullToRefresh';
 
 export default function IssuesPage() {
   const { status } = useSession();
@@ -51,6 +53,39 @@ export default function IssuesPage() {
       setLoading(false);
     }
   }, [filters]);
+
+  // Pull-to-refresh handler
+  const handleRefresh = useCallback(async () => {
+    // Don't set loading to true for pull-to-refresh to avoid showing spinner
+    setError(null);
+
+    const queryParams = new URLSearchParams({
+      state: filters.state,
+      sort: filters.sort,
+      direction: filters.direction
+    });
+
+    try {
+      const response = await fetch(`/api/github/issues?${queryParams}`);
+      
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to fetch issues');
+      }
+
+      const data = await response.json();
+      setIssues(data.issues);
+      setRepository(data.repository);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  }, [filters]);
+
+  const { containerRef, isRefreshing, pullDistance, isPulling } = usePullToRefresh({
+    onRefresh: handleRefresh,
+    threshold: 80,
+    refreshTimeout: 1000,
+  });
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -116,55 +151,66 @@ export default function IssuesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">GitHub Issues</h1>
-        {repository && (
-          <p className="text-muted-foreground">
-            Repository: {repository.owner}/{repository.name}
-          </p>
-        )}
-      </div>
+    <div 
+      ref={containerRef}
+      className="container mx-auto px-4 py-8 min-h-screen overflow-y-auto"
+      style={{ WebkitOverflowScrolling: 'touch' }}
+    >
+      <PullToRefresh
+        isRefreshing={isRefreshing}
+        pullDistance={pullDistance}
+        isPulling={isPulling}
+        threshold={80}
+      >
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold mb-2">GitHub Issues</h1>
+          {repository && (
+            <p className="text-muted-foreground">
+              Repository: {repository.owner}/{repository.name}
+            </p>
+          )}
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <div className="mb-4">
-            <select
-              value={filters.state}
-              onChange={(e) => setFilters({ ...filters, state: e.target.value })}
-              className="w-full px-3 py-2 rounded-md bg-card-bg border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-            >
-              <option value="open">Open Issues</option>
-              <option value="closed">Closed Issues</option>
-              <option value="all">All Issues</option>
-            </select>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <div className="mb-4">
+              <select
+                value={filters.state}
+                onChange={(e) => setFilters({ ...filters, state: e.target.value })}
+                className="w-full px-3 py-2 rounded-md bg-card-bg border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+              >
+                <option value="open">Open Issues</option>
+                <option value="closed">Closed Issues</option>
+                <option value="all">All Issues</option>
+              </select>
+            </div>
+
+            {loading && !isRefreshing ? (
+              <div className="flex justify-center py-8">
+                <LoadingSpinner />
+              </div>
+            ) : (
+              <IssuesList
+                issues={issues}
+                selectedIssue={selectedIssue}
+                onSelectIssue={setSelectedIssue}
+              />
+            )}
           </div>
 
-          {loading ? (
-            <div className="flex justify-center py-8">
-              <LoadingSpinner />
-            </div>
-          ) : (
-            <IssuesList
-              issues={issues}
-              selectedIssue={selectedIssue}
-              onSelectIssue={setSelectedIssue}
-            />
-          )}
+          <div className="lg:col-span-2">
+            {selectedIssue ? (
+              <IssueDetail issue={selectedIssue} repository={repository || undefined} />
+            ) : (
+              <Card className="p-8 text-center">
+                <p className="text-muted-foreground">
+                  Select an issue from the list to view details
+                </p>
+              </Card>
+            )}
+          </div>
         </div>
-
-        <div className="lg:col-span-2">
-          {selectedIssue ? (
-            <IssueDetail issue={selectedIssue} repository={repository || undefined} />
-          ) : (
-            <Card className="p-8 text-center">
-              <p className="text-muted-foreground">
-                Select an issue from the list to view details
-              </p>
-            </Card>
-          )}
-        </div>
-      </div>
+      </PullToRefresh>
     </div>
   );
 }
