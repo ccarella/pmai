@@ -7,6 +7,7 @@ interface UseAIEnhancementResult {
   enhancements: AIEnhancements | null;
   isLoading: boolean;
   error: string | null;
+  requiresApiKey: boolean;
   usage: {
     totalTokens: number;
     requestCount: number;
@@ -19,11 +20,13 @@ export function useAIEnhancement(): UseAIEnhancementResult {
   const [enhancements, setEnhancements] = useState<AIEnhancements | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [requiresApiKey, setRequiresApiKey] = useState(false);
   const [usage, setUsage] = useState<UseAIEnhancementResult['usage']>(null);
 
   const enhance = useCallback(async (formData: IssueFormData) => {
     setIsLoading(true);
     setError(null);
+    setRequiresApiKey(false);
     
     try {
       const response = await fetch('/api/enhance', {
@@ -37,11 +40,18 @@ export function useAIEnhancement(): UseAIEnhancementResult {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Enhancement failed');
+        if (response.status === 403 && data.requiresApiKey) {
+          setRequiresApiKey(true);
+          setError(data.message || 'OpenAI API key required');
+          // Set default enhancements when API key is missing
+          setEnhancements(getDefaultEnhancements(formData.type));
+        } else {
+          throw new Error(data.error || 'Enhancement failed');
+        }
+      } else {
+        setEnhancements(data.enhancements);
+        setUsage(data.usage);
       }
-
-      setEnhancements(data.enhancements);
-      setUsage(data.usage);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
       setError(errorMessage);
@@ -53,13 +63,17 @@ export function useAIEnhancement(): UseAIEnhancementResult {
     }
   }, []);
 
-  const clearError = () => setError(null);
+  const clearError = () => {
+    setError(null);
+    setRequiresApiKey(false);
+  };
 
   return {
     enhance,
     enhancements,
     isLoading,
     error,
+    requiresApiKey,
     usage,
     clearError,
   };

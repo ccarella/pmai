@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { userProfiles } from '@/lib/services/user-storage';
 
 const RATE_LIMIT_REQUESTS_PER_HOUR = parseInt(process.env.RATE_LIMIT_REQUESTS_PER_HOUR || '20');
 const RATE_LIMIT_MAX_TOKENS_PER_REQUEST = parseInt(process.env.RATE_LIMIT_MAX_TOKENS_PER_REQUEST || '2000');
@@ -40,12 +43,24 @@ function checkCostLimit(): boolean {
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
+    // Get user session
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
+    
+    // Get user-specific API key
+    let apiKey: string | null = null;
+    if (userId) {
+      apiKey = await userProfiles.getOpenAIKey(userId);
+    }
     
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
-        { status: 500 }
+        { 
+          error: 'OpenAI API key required',
+          message: 'Please configure your OpenAI API key in Settings to use issue generation.',
+          requiresApiKey: true,
+        },
+        { status: 403 }
       );
     }
 

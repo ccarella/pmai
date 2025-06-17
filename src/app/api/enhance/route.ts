@@ -2,14 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AIEnhancementService } from '@/lib/services/ai-enhancement';
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/utils/rate-limit';
 import { IssueFormData } from '@/lib/types/issue';
-import { getDefaultEnhancements } from '@/lib/utils/default-enhancements';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { userProfiles } from '@/lib/services/user-storage';
 
 // Function to get AI service with user-specific API key
 async function getAIService(userId?: string): Promise<AIEnhancementService | null> {
-  // First try to get user-specific API key
+  // Only accept user-specific API key
   if (userId) {
     const userApiKey = await userProfiles.getOpenAIKey(userId);
     if (userApiKey) {
@@ -17,13 +16,7 @@ async function getAIService(userId?: string): Promise<AIEnhancementService | nul
     }
   }
   
-  // Fall back to system API key if available
-  const systemApiKey = process.env.OPENAI_API_KEY;
-  if (systemApiKey) {
-    return new AIEnhancementService(systemApiKey);
-  }
-  
-  // No API key available
+  // No user API key available - do not fall back to system key
   return null;
 }
 
@@ -81,20 +74,16 @@ export async function POST(request: NextRequest) {
     // Get AI service with user-specific API key
     const service = await getAIService(userId);
     
-    // If no service available (no API key), return default enhancements
+    // If no service available (no API key), return error
     if (!service) {
-      const defaultEnhancements = getDefaultEnhancements(formData.type);
       return NextResponse.json(
-        {
-          enhancements: defaultEnhancements,
-          usage: {
-            totalTokens: 0,
-            requestCount: 0,
-            estimatedCost: 0,
-          },
+        { 
+          error: 'OpenAI API key required',
+          message: 'Please configure your OpenAI API key in Settings to use AI-enhanced features.',
+          requiresApiKey: true,
         },
-        {
-          status: 200,
+        { 
+          status: 403,
           headers: getRateLimitHeaders(rateLimit),
         }
       );

@@ -1,5 +1,3 @@
-import { AIEnhancementService } from './ai-enhancement';
-
 export interface AutoTitleResult {
   title: string;
   isGenerated: boolean;
@@ -8,7 +6,7 @@ export interface AutoTitleResult {
 
 /**
  * Automatically generates a title for an issue based on its content
- * Uses AI when available, falls back to text processing when not
+ * Uses text processing to extract a meaningful title from the content
  */
 export async function generateAutoTitle(
   content: string,
@@ -22,23 +20,8 @@ export async function generateAutoTitle(
     };
   }
 
-  // Try AI generation first
-  const aiService = getAIService();
-  if (aiService) {
-    try {
-      const aiResult = await generateTitleWithAI(aiService, content);
-      return {
-        title: aiResult.title,
-        isGenerated: true,
-        alternatives: aiResult.alternatives,
-      };
-    } catch (error) {
-      console.warn('AI title generation failed:', error);
-      // Fall back to text processing
-    }
-  }
-
-  // Fallback to text processing
+  // Always use text processing for automatic title generation
+  // AI title generation is now only available through the API with user-specific keys
   return {
     title: generateFallbackTitle(content),
     isGenerated: false,
@@ -60,98 +43,6 @@ function isGenericTitle(title: string): boolean {
   
   const normalized = title.toLowerCase().trim();
   return genericTitles.some(generic => normalized === generic || normalized.startsWith(generic));
-}
-
-/**
- * Get AI service instance if available
- */
-function getAIService(): AIEnhancementService | null {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    return null;
-  }
-  return new AIEnhancementService(apiKey);
-}
-
-/**
- * Generate title using AI
- */
-async function generateTitleWithAI(
-  service: AIEnhancementService,
-  content: string
-): Promise<{ title: string; alternatives?: string[] }> {
-  const systemPrompt = `You are an expert at creating concise, descriptive GitHub issue titles. Your task is to analyze the user's description and generate a clear, action-oriented title.
-
-Guidelines for good GitHub issue titles:
-1. Start with an action verb (Add, Fix, Update, Implement, etc.)
-2. Be specific but concise (5-50 characters ideal)
-3. Focus on the main objective, not implementation details
-4. Use present tense, imperative mood
-5. Avoid technical jargon when possible
-
-Examples:
-- "Add dark mode toggle to settings"
-- "Fix memory leak in image processing"
-- "Update user authentication flow"
-- "Implement search functionality"
-
-Your response must be in JSON format with these keys:
-- title: The main recommended title (string)
-- alternatives: Array of 2-3 alternative titles (array of strings)
-
-Make the title clear, actionable, and professional.`;
-
-  const userPrompt = `Please create a GitHub issue title for this description:
-
-${content}
-
-Generate one primary title and 2-3 alternatives that capture the essence of this request.`;
-
-  // Use the existing OpenAI client from the service
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const completion = await (service as any).openai.chat.completions.create({
-    model: 'gpt-4-turbo-preview',
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ],
-    temperature: 0.3, // Lower temperature for more consistent, focused titles
-    max_tokens: 200, // Titles should be short
-    response_format: { type: 'json_object' },
-  });
-
-  const response = completion.choices[0]?.message?.content;
-  if (!response) {
-    throw new Error('No response from AI');
-  }
-
-  // Update usage stats manually
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (completion.usage && (service as any).usage) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (service as any).usage.totalTokens += completion.usage.total_tokens;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (service as any).usage.requestCount += 1;
-    // gpt-4-turbo pricing: ~$0.01 per 1K input tokens, $0.03 per 1K output tokens
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (service as any).usage.estimatedCost += (completion.usage.total_tokens / 1000) * 0.02;
-  }
-
-  const parsed = JSON.parse(response);
-  
-  // Validate and clean the response
-  const title = typeof parsed.title === 'string' ? parsed.title.trim() : generateFallbackTitle(content);
-  const alternatives = Array.isArray(parsed.alternatives) 
-    ? parsed.alternatives.filter((alt: unknown) => typeof alt === 'string').map((alt: string) => alt.trim())
-    : [];
-
-  // Ensure title is within reasonable length
-  const finalTitle = title.length > 70 ? title.substring(0, 67) + '...' : title;
-
-  return {
-    title: finalTitle,
-    alternatives,
-  };
 }
 
 /**
