@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import GitHubTroubleshooting from './troubleshooting'
 
 interface DebugInfo {
@@ -40,6 +41,12 @@ interface DebugInfo {
 }
 
 export default function GitHubAuthDebugPage() {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.NEXT_PUBLIC_ENABLE_DEBUG !== 'true'
+  ) {
+    notFound()
+  }
   const [debugInfo, setDebugInfo] = useState<DebugInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
