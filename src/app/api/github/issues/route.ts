@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
         labels: issue.labels,
         comments: issue.comments,
         html_url: issue.html_url,
-        pull_request: issue.pull_request ? true : false,
+        pull_request: !!issue.pull_request,
       })),
       pagination: {
         ...pagination,
@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
         labels: issue.labels,
         comments: issue.comments,
         html_url: issue.html_url,
-        pull_request: issue.pull_request ? true : false,
+        pull_request: !!issue.pull_request,
       },
       comments: comments.map(comment => ({
         id: comment.id,
