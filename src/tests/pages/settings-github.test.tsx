@@ -8,9 +8,9 @@ jest.mock('next-auth/react');
 jest.mock('next/navigation');
 jest.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div>,
   },
-  AnimatePresence: ({ children }: any) => children,
+  AnimatePresence: ({ children }: React.PropsWithChildren) => children,
 }));
 
 const mockUseSession = useSession as jest.MockedFunction<typeof useSession>;
@@ -26,7 +26,7 @@ describe('GitHubRepositoriesPage', () => {
     mockUseRouter.mockReturnValue({
       push: mockPush,
       refresh: jest.fn(),
-    } as any);
+    } as ReturnType<typeof useRouter>);
   });
 
   describe('Mobile Responsiveness', () => {
@@ -34,9 +34,11 @@ describe('GitHubRepositoriesPage', () => {
       mockUseSession.mockReturnValue({
         data: {
           user: { id: '123', name: 'Test User' },
+          expires: '2025-12-31',
         },
         status: 'authenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       (global.fetch as jest.Mock)
         .mockResolvedValueOnce({
@@ -74,9 +76,11 @@ describe('GitHubRepositoriesPage', () => {
       mockUseSession.mockReturnValue({
         data: {
           user: { id: '123', name: 'Test User' },
+          expires: '2025-12-31',
         },
         status: 'authenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       const mockRepos = [
         {
@@ -116,9 +120,11 @@ describe('GitHubRepositoriesPage', () => {
       mockUseSession.mockReturnValue({
         data: {
           user: { id: '123', name: 'Test User' },
+          expires: '2025-12-31',
         },
         status: 'authenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       const mockRepos = [
         {
@@ -167,9 +173,11 @@ describe('GitHubRepositoriesPage', () => {
       mockUseSession.mockReturnValue({
         data: {
           user: { id: '123', name: 'Test User' },
+          expires: '2025-12-31',
         },
         status: 'authenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       const mockRepos = [
         {
@@ -220,9 +228,11 @@ describe('GitHubRepositoriesPage', () => {
       mockUseSession.mockReturnValue({
         data: {
           user: { id: '123', name: 'Test User' },
+          expires: '2025-12-31',
         },
         status: 'authenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       (global.fetch as jest.Mock)
         .mockResolvedValueOnce({
@@ -253,7 +263,8 @@ describe('GitHubRepositoriesPage', () => {
       mockUseSession.mockReturnValue({
         data: null,
         status: 'unauthenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
 
       render(<GitHubRepositoriesPage />);
 
@@ -266,9 +277,11 @@ describe('GitHubRepositoriesPage', () => {
       mockUseSession.mockReturnValue({
         data: {
           user: { id: '123', name: 'Test User' },
+          expires: '2025-12-31',
         },
         status: 'authenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       const mockRepos = [
         {
@@ -316,9 +329,11 @@ describe('GitHubRepositoriesPage', () => {
       mockUseSession.mockReturnValue({
         data: {
           user: { id: '123', name: 'Test User' },
+          expires: '2025-12-31',
         },
         status: 'authenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       const mockRepos = [
         {

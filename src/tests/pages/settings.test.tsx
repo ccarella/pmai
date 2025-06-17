@@ -9,15 +9,15 @@ jest.mock('next-auth/react');
 jest.mock('next/navigation');
 jest.mock('framer-motion', () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-    button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
-    span: ({ children, ...props }: any) => <span {...props}>{children}</span>,
+    div: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div>,
+    button: ({ children, ...props }: React.PropsWithChildren<React.ButtonHTMLAttributes<HTMLButtonElement>>) => <button {...props}>{children}</button>,
+    span: ({ children, ...props }: React.PropsWithChildren<React.HTMLAttributes<HTMLSpanElement>>) => <span {...props}>{children}</span>,
   },
-  AnimatePresence: ({ children }: any) => children,
+  AnimatePresence: ({ children }: React.PropsWithChildren) => children,
 }));
 
 jest.mock('@radix-ui/react-slot', () => ({
-  Slot: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  Slot: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div>,
 }));
 
 jest.mock('@/lib/animations/utils', () => ({
@@ -55,7 +55,7 @@ describe('SettingsPage', () => {
     mockUseRouter.mockReturnValue({
       push: jest.fn(),
       refresh: jest.fn(),
-    } as any);
+    } as ReturnType<typeof useRouter>);
   });
 
   describe('Mobile Responsiveness', () => {
@@ -63,7 +63,8 @@ describe('SettingsPage', () => {
       mockUseSession.mockReturnValue({
         data: null,
         status: 'unauthenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -93,7 +94,8 @@ describe('SettingsPage', () => {
       mockUseSession.mockReturnValue({
         data: null,
         status: 'unauthenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -118,9 +120,11 @@ describe('SettingsPage', () => {
             email: 'test@example.com',
             image: 'https://example.com/avatar.jpg',
           },
+          expires: '2025-12-31',
         },
         status: 'authenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -146,9 +150,11 @@ describe('SettingsPage', () => {
             email: 'very.long.email.address@example.com',
             image: 'https://example.com/avatar.jpg',
           },
+          expires: '2025-12-31',
         },
         status: 'authenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -170,7 +176,8 @@ describe('SettingsPage', () => {
       mockUseSession.mockReturnValue({
         data: null,
         status: 'unauthenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       (global.fetch as jest.Mock).mockResolvedValue({
         status: 503,
@@ -188,7 +195,8 @@ describe('SettingsPage', () => {
       mockUseSession.mockReturnValue({
         data: null,
         status: 'loading',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -210,7 +218,8 @@ describe('SettingsPage', () => {
       mockUseSession.mockReturnValue({
         data: null,
         status: 'unauthenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -237,9 +246,11 @@ describe('SettingsPage', () => {
             email: 'test@example.com',
             image: 'https://example.com/avatar.jpg',
           },
+          expires: '2025-12-31',
         },
         status: 'authenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -266,9 +277,11 @@ describe('SettingsPage', () => {
             email: 'test@example.com',
             image: 'https://example.com/avatar.jpg',
           },
+          expires: '2025-12-31',
         },
         status: 'authenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
@@ -290,7 +303,8 @@ describe('SettingsPage', () => {
       mockUseSession.mockReturnValue({
         data: null,
         status: 'unauthenticated',
-      } as any);
+        update: jest.fn(),
+      } as ReturnType<typeof useSession>);
       
       (global.fetch as jest.Mock).mockResolvedValue({
         ok: true,
