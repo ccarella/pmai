@@ -204,10 +204,10 @@ export default function OpenAISettingsPage() {
                 </div>
 
                 <Button
-                  variant="danger"
+                  variant="secondary"
                   onClick={handleRemoveApiKey}
                   loading={loading}
-                  className="w-full sm:w-auto"
+                  className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-white"
                 >
                   Remove API Key
                 </Button>

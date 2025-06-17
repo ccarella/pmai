@@ -42,7 +42,7 @@ export const authOptions: NextAuthOptions = {
         await userProfiles.createOrUpdate(user.id, {
           email: user.email || '',
           name: user.name || profile?.name,
-          image: user.image || profile?.avatar_url,
+          image: user.image || (profile as { avatar_url?: string })?.avatar_url,
         })
       }
       return true
