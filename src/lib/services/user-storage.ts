@@ -91,7 +91,6 @@ export const userProfiles = {
       profile.updatedAt = new Date().toISOString()
       await userProfiles.set(userId, profile)
     }
-    await redis.hdel(`onboarding:${userId}`, 'completedAt')
   },
 
   async getOpenAIKey(userId: string): Promise<string | null> {
