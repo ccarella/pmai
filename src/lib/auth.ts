@@ -19,11 +19,13 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      console.log('GitHub SignIn Callback Debug:')
-      console.log('- Provider:', account?.provider)
-      console.log('- Has access token:', !!account?.access_token)
-      console.log('- Token scope from account:', account?.scope)
-      console.log('- Full account object:', JSON.stringify(account, null, 2))
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('GitHub SignIn Callback Debug:')
+        console.log('- Provider:', account?.provider)
+        console.log('- Has access token:', !!account?.access_token)
+        console.log('- Token scope from account:', account?.scope)
+        console.log('- Full account object:', JSON.stringify(account, null, 2))
+      }
       
       if (account?.provider === 'github' && account.access_token) {
         // Store GitHub tokens in Redis
