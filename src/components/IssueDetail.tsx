@@ -154,6 +154,7 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
 
       <div className="border-t border-border pt-6">
         <div className="flex items-start gap-4 mb-6">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={issue.user.avatar_url}
             alt={issue.user.login}
@@ -189,6 +190,7 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
             <h3 className="font-semibold text-lg mb-4">Comments ({comments.length})</h3>
             {comments.map((comment) => (
               <div key={comment.id} className="flex items-start gap-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={comment.user.avatar_url}
                   alt={comment.user.login}

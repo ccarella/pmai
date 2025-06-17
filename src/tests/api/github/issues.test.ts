@@ -1,16 +1,25 @@
 import { NextRequest } from 'next/server';
 import { GET, POST } from '@/app/api/github/issues/route';
 import { getServerSession } from 'next-auth/next';
-import { Octokit } from '@octokit/rest';
-import { redis } from '@/lib/redis';
+import { Octokit } from 'octokit';
+import { githubConnections } from '@/lib/redis';
 
 jest.mock('next-auth/next');
-jest.mock('@octokit/rest');
-jest.mock('@/lib/redis');
+jest.mock('octokit');
+jest.mock('@/lib/redis', () => ({
+  githubConnections: {
+    get: jest.fn(),
+    set: jest.fn(),
+    delete: jest.fn(),
+    updateSelectedRepo: jest.fn(),
+    addRepository: jest.fn(),
+    removeRepository: jest.fn(),
+  },
+}));
 
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
 const mockOctokit = Octokit as jest.MockedClass<typeof Octokit>;
-const mockRedis = redis as jest.Mocked<typeof redis>;
+const mockGithubConnections = githubConnections as jest.Mocked<typeof githubConnections>;
 
 describe('/api/github/issues', () => {
   beforeEach(() => {
@@ -31,17 +40,16 @@ describe('/api/github/issues', () => {
 
     it('should return 400 if no repository is selected', async () => {
       mockGetServerSession.mockResolvedValue({
-        accessToken: 'test-token',
-        user: { email: 'test@example.com' },
+        user: { id: 'test-user-id' },
       } as ReturnType<typeof getServerSession>);
-      mockRedis.get.mockResolvedValue(null);
+      mockGithubConnections.get.mockResolvedValue(null);
 
       const req = new NextRequest('http://localhost:3000/api/github/issues');
       const response = await GET(req);
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data).toEqual({ error: 'No repository selected' });
+      expect(data).toEqual({ error: 'GitHub not connected' });
     });
 
     it('should fetch and return issues successfully', async () => {
@@ -63,13 +71,16 @@ describe('/api/github/issues', () => {
       ];
 
       mockGetServerSession.mockResolvedValue({
-        accessToken: 'test-token',
-        user: { email: 'test@example.com' },
+        user: { id: 'test-user-id' },
       } as ReturnType<typeof getServerSession>);
 
-      mockRedis.get.mockResolvedValue({
-        owner: 'testowner',
-        name: 'testrepo',
+      mockGithubConnections.get.mockResolvedValue({
+        id: 'conn-id',
+        userId: 'test-user-id',
+        accessToken: 'test-token',
+        selectedRepo: 'testowner/testrepo',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
 
       const mockListForRepo = jest.fn().mockResolvedValue({
@@ -77,9 +88,11 @@ describe('/api/github/issues', () => {
         headers: { link: '<https://api.github.com/repos/test/repo/issues?page=2>; rel="next"' },
       });
 
-      mockOctokit.prototype.issues = {
-        listForRepo: mockListForRepo,
-      } as Partial<Octokit['issues']>;
+      mockOctokit.prototype.rest = {
+        issues: {
+          listForRepo: mockListForRepo,
+        },
+      } as any;
 
       const req = new NextRequest('http://localhost:3000/api/github/issues?state=open&sort=created');
       const response = await GET(req);
@@ -102,18 +115,23 @@ describe('/api/github/issues', () => {
 
     it('should handle errors gracefully', async () => {
       mockGetServerSession.mockResolvedValue({
-        accessToken: 'test-token',
-        user: { email: 'test@example.com' },
+        user: { id: 'test-user-id' },
       } as ReturnType<typeof getServerSession>);
 
-      mockRedis.get.mockResolvedValue({
-        owner: 'testowner',
-        name: 'testrepo',
+      mockGithubConnections.get.mockResolvedValue({
+        id: 'conn-id',
+        userId: 'test-user-id',
+        accessToken: 'test-token',
+        selectedRepo: 'testowner/testrepo',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
 
-      mockOctokit.prototype.issues = {
-        listForRepo: jest.fn().mockRejectedValue(new Error('API Error')),
-      } as Partial<Octokit['issues']>;
+      mockOctokit.prototype.rest = {
+        issues: {
+          listForRepo: jest.fn().mockRejectedValue(new Error('API Error')),
+        },
+      } as any;
 
       const req = new NextRequest('http://localhost:3000/api/github/issues');
       const response = await GET(req);
@@ -141,8 +159,7 @@ describe('/api/github/issues', () => {
 
     it('should return 400 if no issue number is provided', async () => {
       mockGetServerSession.mockResolvedValue({
-        accessToken: 'test-token',
-        user: { email: 'test@example.com' },
+        user: { id: 'test-user-id' },
       } as ReturnType<typeof getServerSession>);
 
       const req = new NextRequest('http://localhost:3000/api/github/issues', {
@@ -183,22 +200,27 @@ describe('/api/github/issues', () => {
       ];
 
       mockGetServerSession.mockResolvedValue({
-        accessToken: 'test-token',
-        user: { email: 'test@example.com' },
+        user: { id: 'test-user-id' },
       } as ReturnType<typeof getServerSession>);
 
-      mockRedis.get.mockResolvedValue({
-        owner: 'testowner',
-        name: 'testrepo',
+      mockGithubConnections.get.mockResolvedValue({
+        id: 'conn-id',
+        userId: 'test-user-id',
+        accessToken: 'test-token',
+        selectedRepo: 'testowner/testrepo',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
 
       const mockGet = jest.fn().mockResolvedValue({ data: mockIssue });
       const mockListComments = jest.fn().mockResolvedValue({ data: mockComments });
 
-      mockOctokit.prototype.issues = {
-        get: mockGet,
-        listComments: mockListComments,
-      } as Partial<Octokit['issues']>;
+      mockOctokit.prototype.rest = {
+        issues: {
+          get: mockGet,
+          listComments: mockListComments,
+        },
+      } as any;
 
       const req = new NextRequest('http://localhost:3000/api/github/issues', {
         method: 'POST',

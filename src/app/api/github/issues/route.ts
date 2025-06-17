@@ -1,26 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { Octokit } from '@octokit/rest';
-import { redis } from '@/lib/redis';
+import { Octokit } from 'octokit';
+import { githubConnections } from '@/lib/redis';
 
 export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.accessToken) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
       );
     }
 
+    const connection = await githubConnections.get(session.user.id);
+    
+    if (!connection) {
+      return NextResponse.json(
+        { error: 'GitHub not connected' },
+        { status: 400 }
+      );
+    }
+
     const octokit = new Octokit({
-      auth: session.accessToken,
+      auth: connection.accessToken,
     });
 
-    const repoKey = `selected-repo:${session.user?.email}`;
-    const selectedRepo = await redis.get(repoKey);
+    const selectedRepo = connection.selectedRepo;
 
     if (!selectedRepo) {
       return NextResponse.json(
@@ -29,7 +37,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const { owner, name } = selectedRepo as { owner: string; name: string };
+    const [owner, name] = selectedRepo.split('/');
 
     const searchParams = req.nextUrl.searchParams;
     const state = searchParams.get('state') || 'open';
@@ -39,7 +47,7 @@ export async function GET(req: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const per_page = parseInt(searchParams.get('per_page') || '20');
 
-    const { data: issues, headers } = await octokit.issues.listForRepo({
+    const { data: issues, headers } = await octokit.rest.issues.listForRepo({
       owner,
       repo: name,
       state: state as 'open' | 'closed' | 'all',
@@ -95,7 +103,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.accessToken) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
@@ -112,12 +120,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const connection = await githubConnections.get(session.user.id);
+    
+    if (!connection) {
+      return NextResponse.json(
+        { error: 'GitHub not connected' },
+        { status: 400 }
+      );
+    }
+
     const octokit = new Octokit({
-      auth: session.accessToken,
+      auth: connection.accessToken,
     });
 
-    const repoKey = `selected-repo:${session.user?.email}`;
-    const selectedRepo = await redis.get(repoKey);
+    const selectedRepo = connection.selectedRepo;
 
     if (!selectedRepo) {
       return NextResponse.json(
@@ -126,15 +142,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { owner, name } = selectedRepo as { owner: string; name: string };
+    const [owner, name] = selectedRepo.split('/');
 
-    const { data: issue } = await octokit.issues.get({
+    const { data: issue } = await octokit.rest.issues.get({
       owner,
       repo: name,
       issue_number: issueNumber,
     });
 
-    const { data: comments } = await octokit.issues.listComments({
+    const { data: comments } = await octokit.rest.issues.listComments({
       owner,
       repo: name,
       issue_number: issueNumber,
