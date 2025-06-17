@@ -41,7 +41,11 @@ global.PointerEvent = class PointerEvent extends MouseEvent {
   }
 }
 
-// Mock animation utils
-jest.mock('@/lib/animations/utils', () => ({
-  getRippleOrigin: jest.fn(() => ({ x: 50, y: 50 }))
-}))
+// Mock animation utils - only mock getRippleOrigin, export actual implementations for other functions
+jest.mock('@/lib/animations/utils', () => {
+  const actual = jest.requireActual('@/lib/animations/utils');
+  return {
+    ...actual,
+    getRippleOrigin: jest.fn(() => ({ x: 50, y: 50 }))
+  };
+});
