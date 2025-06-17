@@ -49,8 +49,13 @@ function isGenericTitle(title: string): boolean {
  * Generate fallback title using text processing
  */
 function generateFallbackTitle(content: string): string {
+  // Remove common prefixes like Markdown headings or "Title:" labels
+  let sanitized = content.trim();
+  sanitized = sanitized.replace(/^#+\s*title:?\s*/i, '');
+  sanitized = sanitized.replace(/^title:?\s*/i, '');
+
   // Clean and truncate the content to create a reasonable title
-  const cleaned = content
+  const cleaned = sanitized
     .replace(/[^\w\s]/g, ' ') // Remove special characters
     .replace(/\s+/g, ' ') // Normalize whitespace
     .trim();

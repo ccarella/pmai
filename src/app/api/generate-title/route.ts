@@ -207,7 +207,8 @@ Generate one primary title and 2-3 alternatives that capture the essence of this
     const parsed = JSON.parse(response);
     
     // Validate and clean the response
-    const title = typeof parsed.title === 'string' ? parsed.title.trim() : generateFallbackTitle(prompt);
+    const cleanTitle = (t: string) => t.replace(/^title:?\s*/i, '').trim();
+    const title = typeof parsed.title === 'string' ? cleanTitle(parsed.title) : generateFallbackTitle(prompt);
     const alternatives = Array.isArray(parsed.alternatives) 
       ? parsed.alternatives.filter((alt: unknown) => typeof alt === 'string').map((alt: string) => alt.trim())
       : [];
