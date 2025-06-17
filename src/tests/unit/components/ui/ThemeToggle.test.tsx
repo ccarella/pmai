@@ -45,34 +45,58 @@ describe('ThemeToggle', () => {
     document.documentElement.classList.remove('light', 'dark');
   });
 
-  it('should render theme options', async () => {
+  it('should render theme option buttons', async () => {
     renderWithThemeProvider(<ThemeToggle />);
     
-    const select = screen.getByRole('combobox');
-    expect(select).toBeInTheDocument();
+    // Check if all theme buttons are present
+    expect(screen.getByLabelText('Set theme to Light')).toBeInTheDocument();
+    expect(screen.getByLabelText('Set theme to Dark')).toBeInTheDocument();
+    expect(screen.getByLabelText('Set theme to System')).toBeInTheDocument();
     
-    // Check if options are present
-    expect(screen.getByText('☀️ Light')).toBeInTheDocument();
-    expect(screen.getByText('🌙 Dark')).toBeInTheDocument();
-    expect(screen.getByText('💻 System')).toBeInTheDocument();
+    // Check if icons and labels are present
+    expect(screen.getByText('☀️')).toBeInTheDocument();
+    expect(screen.getByText('🌙')).toBeInTheDocument();
+    expect(screen.getByText('💻')).toBeInTheDocument();
+    expect(screen.getByText('Light')).toBeInTheDocument();
+    expect(screen.getByText('Dark')).toBeInTheDocument();
+    expect(screen.getByText('System')).toBeInTheDocument();
   });
 
-  it('should change theme when option is selected', async () => {
+  it('should change theme when button is clicked', async () => {
     renderWithThemeProvider(<ThemeToggle />);
     
-    const select = screen.getByRole('combobox') as HTMLSelectElement;
+    const darkButton = screen.getByLabelText('Set theme to Dark');
     
-    fireEvent.change(select, { target: { value: 'dark' } });
+    fireEvent.click(darkButton);
     
-    expect(select.value).toBe('dark');
     expect(localStorage.getItem('theme')).toBe('dark');
+    expect(darkButton).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('should have proper accessibility attributes', () => {
+  it('should highlight active theme button', () => {
     renderWithThemeProvider(<ThemeToggle />);
     
-    const select = screen.getByRole('combobox');
-    expect(select).toHaveAttribute('aria-label', 'Select theme');
+    // System should be active by default
+    const systemButton = screen.getByLabelText('Set theme to System');
+    expect(systemButton).toHaveClass('bg-accent');
+    expect(systemButton).toHaveAttribute('aria-pressed', 'true');
+    
+    // Click dark theme
+    const darkButton = screen.getByLabelText('Set theme to Dark');
+    fireEvent.click(darkButton);
+    
+    expect(darkButton).toHaveClass('bg-accent');
+    expect(darkButton).toHaveAttribute('aria-pressed', 'true');
+    expect(systemButton).not.toHaveClass('bg-accent');
+    expect(systemButton).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('should show resolved theme for system option', () => {
+    renderWithThemeProvider(<ThemeToggle />);
+    
+    // When system is selected, it should show the resolved theme
+    const systemButton = screen.getByLabelText('Set theme to System');
+    expect(systemButton).toHaveTextContent('(light)'); // Default system preference
   });
 });
 
