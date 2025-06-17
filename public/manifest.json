@@ -1,0 +1,46 @@
+{
+  "name": "GitHub Issue Generator",
+  "short_name": "PMAI",
+  "description": "Create comprehensive, AI-optimized GitHub issues with a beautiful Dracula-themed interface",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#282a36",
+  "theme_color": "#bd93f9",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "developer", "utilities"],
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "New Issue",
+      "short_name": "New",
+      "description": "Create a new GitHub issue",
+      "url": "/create",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
