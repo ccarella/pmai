@@ -165,7 +165,7 @@ export default function SettingsPage() {
                     Skip Review
                   </label>
                   <p className="text-sm text-muted">
-                    Directly publish issues to GitHub without the review step
+                    Directly publish issues to GitHub without the review step (synchronous)
                   </p>
                 </div>
                 <Switch
