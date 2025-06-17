@@ -1,5 +1,31 @@
 # GitHub Issue Generator for Claude Code
 
+## 🔐 Environment Setup
+
+### Required Environment Variables
+
+#### Encryption Key (Required)
+This application requires an encryption key to securely store user API keys. Without this key, the application will not function properly in production.
+
+**Generate an encryption key:**
+```bash
+npm run generate-key
+```
+
+This will:
+1. Generate a secure 256-bit encryption key
+2. Display the key in the format `ENCRYPTION_KEY=<key>`
+3. Optionally create a `.env.local` file with the key
+
+**Important:**
+- Keep this key secure and never commit it to version control
+- The same key must be used across all application instances
+- Changing the key will make existing encrypted data unrecoverable
+- In production, set this as an environment variable in your hosting platform
+
+#### Other Required Variables
+See `.env.example` for a complete list of required environment variables.
+
 ## Foundation Implementation Complete
 
 I've successfully implemented the foundation for the GitHub Issue Generator following TDD principles:
