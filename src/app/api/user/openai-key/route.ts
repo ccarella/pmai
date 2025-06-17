@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { userProfiles } from '@/lib/services/user-storage'
+import { resetOnboarding } from '@/lib/services/onboarding'
 
 export async function POST(request: NextRequest) {
   try {
@@ -56,6 +57,7 @@ export async function DELETE() {
     }
 
     await userProfiles.removeOpenAIKey(session.user.id)
+    await resetOnboarding(session.user.id)
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -8,6 +8,7 @@ jest.mock('@/lib/redis', () => ({
     get: jest.fn(),
     set: jest.fn(),
     del: jest.fn(),
+    hdel: jest.fn(),
   },
 }))
 
