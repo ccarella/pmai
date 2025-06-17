@@ -67,10 +67,10 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
           
           {!isLoading && (
             <>
-              <div className="flex space-x-4 mb-4">
+              <div className="flex gap-3 sm:gap-4 mb-4">
                 <button
                   onClick={() => setActiveTab('markdown')}
-                  className={`px-4 py-2 font-medium rounded-md transition-all duration-200 ${
+                  className={`px-3 sm:px-4 py-2 font-medium rounded-md transition-all duration-200 ${
                     activeTab === 'markdown'
                       ? 'bg-accent text-foreground shadow-sm'
                       : 'text-muted hover:text-foreground hover:bg-card-bg'
@@ -80,7 +80,7 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
                 </button>
                 <button
                   onClick={() => setActiveTab('claude')}
-                  className={`px-4 py-2 font-medium rounded-md transition-all duration-200 ${
+                  className={`px-3 sm:px-4 py-2 font-medium rounded-md transition-all duration-200 ${
                     activeTab === 'claude'
                       ? 'bg-accent text-foreground shadow-sm'
                       : 'text-muted hover:text-foreground hover:bg-card-bg'
@@ -96,12 +96,12 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
                 </pre>
               </div>
               
-              <div className="flex justify-between mt-6">
-                <Button variant="secondary" onClick={onEdit}>
+              <div className="flex flex-col sm:flex-row gap-4 sm:justify-between mt-6">
+                <Button variant="secondary" onClick={onEdit} className="w-full sm:w-auto">
                   Edit
                 </Button>
-                <div className="flex items-center space-x-3">
-                  <Button variant="secondary" onClick={handleCopy}>
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+                  <Button variant="secondary" onClick={handleCopy} className="w-full sm:w-auto">
                     {copied ? 'Copied!' : 'Copy to Clipboard'}
                   </Button>
                   <PublishButton
@@ -114,6 +114,7 @@ export const IssuePreview: React.FC<IssuePreviewProps> = ({
                     onError={(error) => {
                       console.error('Failed to publish:', error);
                     }}
+                    className="w-full sm:w-auto"
                   />
                 </div>
               </div>

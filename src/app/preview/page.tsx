@@ -153,10 +153,10 @@ export default function PreviewPage() {
                   </svg>
                 )}
               </button>
-              <div className="flex space-x-2">
+              <div className="flex gap-2 sm:gap-3">
               <button
                 onClick={() => setActiveTab('original')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${
+                className={`px-2 sm:px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${
                   activeTab === 'original'
                     ? 'bg-accent text-foreground shadow-sm'
                     : 'text-muted hover:text-foreground hover:bg-card-bg'
@@ -166,7 +166,7 @@ export default function PreviewPage() {
               </button>
               <button
                 onClick={() => setActiveTab('markdown')}
-                className={`px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${
+                className={`px-2 sm:px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${
                   activeTab === 'markdown'
                     ? 'bg-accent text-foreground shadow-sm'
                     : 'text-muted hover:text-foreground hover:bg-card-bg'
@@ -184,8 +184,8 @@ export default function PreviewPage() {
             </pre>
           </div>
           
-          <div className="flex justify-between mt-6">
-            <Button variant="secondary" onClick={handleEdit}>
+          <div className="flex flex-col sm:flex-row gap-4 sm:justify-between mt-6">
+            <Button variant="secondary" onClick={handleEdit} className="w-full sm:w-auto">
               Create New Issue
             </Button>
             <PublishButton
@@ -198,6 +198,7 @@ export default function PreviewPage() {
                 onError={(error) => {
                   console.error('Failed to publish:', error);
                 }}
+                className="w-full sm:w-auto"
               />
           </div>
         </Card>
