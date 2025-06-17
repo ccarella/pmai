@@ -99,7 +99,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         onComplete={handleOnboardingComplete}
-        initialStatus={onboardingStatus}
+        initialStatus={onboardingStatus || undefined}
       />
     </OnboardingContext.Provider>
   );

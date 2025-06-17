@@ -1,6 +1,8 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { redisClient } from '@/lib/utils/redis';
+import { authOptions } from '@/lib/auth';
+import { redis } from '@/lib/redis';
+import { userProfiles } from '@/lib/services/user-storage';
+import { githubConnections } from '@/lib/redis';
 
 export interface OnboardingStatus {
   isAuthenticated: boolean;
@@ -39,24 +41,24 @@ export async function getOnboardingStatus(): Promise<OnboardingStatus> {
 
   try {
     // Check for OpenAI API key
-    const userProfile = await redisClient.hgetall(`user:${session.user.id}`);
+    const userProfile = await userProfiles.get(session.user.id);
     if (userProfile?.openaiApiKey) {
       status.hasOpenAIKey = true;
       status.openAIKeyAddedAt = userProfile.openaiKeyAddedAt;
     }
 
     // Check for GitHub connection and repository selection
-    const githubConnection = await redisClient.hgetall(`github:${session.user.id}`);
+    const githubConnection = await githubConnections.get(session.user.id);
     if (githubConnection?.selectedRepo) {
       status.hasSelectedRepo = true;
       status.selectedRepo = githubConnection.selectedRepo;
     }
     if (githubConnection?.addedRepos) {
-      status.addedRepos = JSON.parse(githubConnection.addedRepos);
+      status.addedRepos = githubConnection.addedRepos;
     }
 
     // Check if onboarding was completed or skipped
-    const onboardingData = await redisClient.hgetall(`onboarding:${session.user.id}`);
+    const onboardingData = await redis.hgetall(`onboarding:${session.user.id}`) as Record<string, string> | null;
     if (onboardingData?.completedAt) {
       status.completedAt = onboardingData.completedAt;
     }
@@ -71,13 +73,13 @@ export async function getOnboardingStatus(): Promise<OnboardingStatus> {
 }
 
 export async function markOnboardingComplete(userId: string): Promise<void> {
-  await redisClient.hset(`onboarding:${userId}`, {
+  await redis.hset(`onboarding:${userId}`, {
     completedAt: new Date().toISOString(),
   });
 }
 
 export async function skipOnboarding(userId: string): Promise<void> {
-  await redisClient.hset(`onboarding:${userId}`, {
+  await redis.hset(`onboarding:${userId}`, {
     skippedAt: new Date().toISOString(),
   });
 }
