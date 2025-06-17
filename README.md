@@ -142,3 +142,7 @@ The foundation is solid and all tests are passing. The project is ready for:
 4. Full integration testing
 
 All code follows TDD principles with tests written first and implementations passing all test cases.# Environment variables are now configured in Vercel
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
