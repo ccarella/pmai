@@ -1,8 +1,10 @@
 import { redis } from '@/lib/redis'
 import crypto from 'crypto'
+import { encryptionConfig } from '@/lib/config/encryption'
 
-// Encryption key from environment variable (or generate one)
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || crypto.randomBytes(32).toString('hex')
+// Initialize encryption configuration
+encryptionConfig.initialize()
+const ENCRYPTION_KEY = encryptionConfig.getKey()
 
 export interface UserProfile {
   id: string
