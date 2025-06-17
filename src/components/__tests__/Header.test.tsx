@@ -10,11 +10,17 @@ describe('Header', () => {
     expect(logoLink).toHaveAttribute('href', '/');
   });
 
-  it('renders the settings gear icon link', () => {
+  it('does not render the settings gear icon link', () => {
     render(<Header />);
-    const settingsLink = screen.getByTitle('Settings');
-    expect(settingsLink).toBeInTheDocument();
-    expect(settingsLink).toHaveAttribute('href', '/settings');
+    const settingsLink = screen.queryByTitle('Settings');
+    expect(settingsLink).not.toBeInTheDocument();
+  });
+
+  it('renders settings tab in navigation', () => {
+    render(<Header />);
+    const settingsTab = screen.getByRole('link', { name: 'Settings' });
+    expect(settingsTab).toBeInTheDocument();
+    expect(settingsTab).toHaveAttribute('href', '/settings');
   });
 
   it('has proper styling classes', () => {
