@@ -126,6 +126,7 @@ Generate one primary title and 2-3 alternatives that capture the essence of this
   }
 
   // Update usage stats manually
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   if (completion.usage && (service as any).usage) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (service as any).usage.totalTokens += completion.usage.total_tokens;
