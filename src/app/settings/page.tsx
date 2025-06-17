@@ -260,11 +260,13 @@ export default function SettingsPage() {
                         Manage Repositories
                       </Button>
                     </Link>
-                    <Link href="/debug/github-auth" className="w-full sm:w-auto">
-                      <Button variant="ghost" size="sm" className="w-full sm:w-auto min-h-[44px]">
-                        Debug Auth
-                      </Button>
-                    </Link>
+                    {process.env.NEXT_PUBLIC_ENABLE_DEBUG === 'true' && (
+                      <Link href="/debug/github-auth" className="w-full sm:w-auto">
+                        <Button variant="ghost" size="sm" className="w-full sm:w-auto min-h-[44px]">
+                          Debug Auth
+                        </Button>
+                      </Link>
+                    )}
                   </div>
                   <Button
                     variant="ghost"

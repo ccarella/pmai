@@ -5,6 +5,13 @@ import { githubConnections } from '@/lib/redis'
 import { Octokit } from 'octokit'
 
 export async function GET() {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    process.env.NEXT_PUBLIC_ENABLE_DEBUG !== 'true'
+  ) {
+    return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  }
+
   try {
     const session = await getServerSession(authOptions)
     
