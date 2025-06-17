@@ -3,7 +3,6 @@
 import React from 'react';
 import Link from 'next/link';
 import { RepositorySwitcher } from './RepositorySwitcher';
-import { ThemeToggleButton } from './ui/ThemeToggle';
 
 export const Header: React.FC = () => {
   return (
@@ -16,7 +15,6 @@ export const Header: React.FC = () => {
           
           <div className="flex items-center gap-4">
             <RepositorySwitcher />
-            <ThemeToggleButton />
             
             <Link 
             href="/settings" 
