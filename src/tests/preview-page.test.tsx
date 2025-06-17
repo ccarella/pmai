@@ -71,7 +71,7 @@ describe('PreviewPage', () => {
     });
   });
 
-  it('displays issue content with two tabs', () => {
+  it('displays issue content without tabs', () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
@@ -79,12 +79,12 @@ describe('PreviewPage', () => {
     render(<PreviewPage />);
     
     expect(screen.getByText('Issue Preview')).toBeInTheDocument();
-    expect(screen.getByText('Original')).toBeInTheDocument();
-    expect(screen.getByText('GitHub Issue')).toBeInTheDocument();
+    expect(screen.queryByText('Original')).not.toBeInTheDocument();
+    expect(screen.queryByText('GitHub Issue')).not.toBeInTheDocument();
     expect(screen.queryByText('Claude Prompt')).not.toBeInTheDocument();
   });
 
-  it('displays GitHub Issue content by default', () => {
+  it('displays GitHub Issue content directly', () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
@@ -94,42 +94,29 @@ describe('PreviewPage', () => {
     expect(screen.getByText(/User Authentication System/)).toBeInTheDocument();
   });
 
-  it('switches to Original tab when clicked', () => {
+  it('does not display original content', () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
     
     render(<PreviewPage />);
     
-    const originalTab = screen.getByText('Original');
-    fireEvent.click(originalTab);
-    
-    expect(screen.getByText(/Build a user authentication system/)).toBeInTheDocument();
+    expect(screen.queryByText(/Build a user authentication system/)).not.toBeInTheDocument();
   });
 
 
-  it('copies content to clipboard based on active tab using icon', async () => {
+  it('copies GitHub Issue content to clipboard using icon', async () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
     
     render(<PreviewPage />);
     
-    // Test copying GitHub Issue (default)
     const copyButton = screen.getByTitle('Copy to clipboard');
     fireEvent.click(copyButton);
     
     await waitFor(() => {
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(mockIssue.markdown);
-    });
-    
-    // Switch to Original and copy
-    const originalTab = screen.getByText('Original');
-    fireEvent.click(originalTab);
-    fireEvent.click(copyButton);
-    
-    await waitFor(() => {
-      expect(navigator.clipboard.writeText).toHaveBeenLastCalledWith(mockIssue.original);
     });
   });
 
@@ -191,5 +178,39 @@ describe('PreviewPage', () => {
     await waitFor(() => {
       expect(screen.getByTitle('Copy to clipboard')).toBeInTheDocument();
     }, { timeout: 3000 });
+  });
+
+  it('displays Generated Content section properly', () => {
+    (window.localStorage.getItem as jest.Mock).mockReturnValue(
+      JSON.stringify(mockIssue)
+    );
+    
+    render(<PreviewPage />);
+    
+    expect(screen.getByText('Generated Content')).toBeInTheDocument();
+    expect(screen.getByTitle('Copy to clipboard')).toBeInTheDocument();
+    
+    // Ensure markdown content is visible
+    const preElement = screen.getByText(/User Authentication System/).closest('pre');
+    expect(preElement).toHaveClass('whitespace-pre-wrap', 'text-sm', 'font-mono');
+  });
+
+  it('ensures clean UI without tab navigation', () => {
+    (window.localStorage.getItem as jest.Mock).mockReturnValue(
+      JSON.stringify(mockIssue)
+    );
+    
+    render(<PreviewPage />);
+    
+    // Check that there are no tab buttons
+    const buttons = screen.getAllByRole('button');
+    const tabButtons = buttons.filter(btn => 
+      btn.textContent === 'Original' || btn.textContent === 'GitHub Issue'
+    );
+    expect(tabButtons).toHaveLength(0);
+    
+    // Verify only essential buttons are present
+    expect(screen.getByText('Create New Issue')).toBeInTheDocument();
+    expect(screen.getByText('Publish to GitHub')).toBeInTheDocument();
   });
 });
