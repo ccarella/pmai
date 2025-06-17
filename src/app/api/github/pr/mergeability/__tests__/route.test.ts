@@ -2,10 +2,16 @@ import { NextRequest } from 'next/server';
 import { POST } from '../route';
 import { getServerSession } from 'next-auth';
 import { Octokit } from '@octokit/rest';
+import { githubConnections } from '@/lib/redis';
 
 // Mock dependencies
 jest.mock('next-auth');
 jest.mock('@octokit/rest');
+jest.mock('@/lib/redis', () => ({
+  githubConnections: {
+    get: jest.fn(),
+  },
+}));
 
 const mockGetServerSession = getServerSession as jest.Mock;
 const mockOctokit = Octokit as jest.MockedClass<typeof Octokit>;
@@ -45,8 +51,29 @@ describe('POST /api/github/pr/mergeability', () => {
     expect(data.error).toBe('Authentication required');
   });
 
+  it('should return 400 if GitHub not connected', async () => {
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue(null);
+
+    const request = new NextRequest('http://localhost/api/github/pr/mergeability', {
+      method: 'POST',
+      body: JSON.stringify({
+        owner: 'owner',
+        repo: 'repo',
+        pull_number: 123,
+      }),
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe('GitHub not connected');
+  });
+
   it('should return 400 if required parameters are missing', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
 
     const request = new NextRequest('http://localhost/api/github/pr/mergeability', {
       method: 'POST',
@@ -64,7 +91,8 @@ describe('POST /api/github/pr/mergeability', () => {
   });
 
   it('should return mergeable status for a clean PR', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet.mockResolvedValue({
       data: {
@@ -102,7 +130,8 @@ describe('POST /api/github/pr/mergeability', () => {
   });
 
   it('should handle draft PRs correctly', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet.mockResolvedValue({
       data: {
@@ -135,7 +164,8 @@ describe('POST /api/github/pr/mergeability', () => {
   });
 
   it('should handle non-mergeable PRs with conflicts', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet.mockResolvedValue({
       data: {
@@ -168,7 +198,8 @@ describe('POST /api/github/pr/mergeability', () => {
   });
 
   it('should retry when mergeable is null', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet
       .mockResolvedValueOnce({
@@ -210,7 +241,8 @@ describe('POST /api/github/pr/mergeability', () => {
   });
 
   it('should handle 404 errors', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet.mockRejectedValue({ status: 404 });
 
@@ -231,7 +263,8 @@ describe('POST /api/github/pr/mergeability', () => {
   });
 
   it('should handle 403 errors', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet.mockRejectedValue({ status: 403 });
 

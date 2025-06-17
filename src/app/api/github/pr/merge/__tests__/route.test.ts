@@ -2,10 +2,16 @@ import { NextRequest } from 'next/server';
 import { POST } from '../route';
 import { getServerSession } from 'next-auth';
 import { Octokit } from '@octokit/rest';
+import { githubConnections } from '@/lib/redis';
 
 // Mock dependencies
 jest.mock('next-auth');
 jest.mock('@octokit/rest');
+jest.mock('@/lib/redis', () => ({
+  githubConnections: {
+    get: jest.fn(),
+  },
+}));
 
 const mockGetServerSession = getServerSession as jest.Mock;
 const mockOctokit = Octokit as jest.MockedClass<typeof Octokit>;
@@ -47,8 +53,29 @@ describe('POST /api/github/pr/merge', () => {
     expect(data.error).toBe('Authentication required');
   });
 
+  it('should return 400 if GitHub not connected', async () => {
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue(null);
+
+    const request = new NextRequest('http://localhost/api/github/pr/merge', {
+      method: 'POST',
+      body: JSON.stringify({
+        owner: 'owner',
+        repo: 'repo',
+        pull_number: 123,
+      }),
+    });
+
+    const response = await POST(request);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.error).toBe('GitHub not connected');
+  });
+
   it('should return 400 if required parameters are missing', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
 
     const request = new NextRequest('http://localhost/api/github/pr/merge', {
       method: 'POST',
@@ -66,7 +93,8 @@ describe('POST /api/github/pr/merge', () => {
   });
 
   it('should return 400 for invalid merge method', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
 
     const request = new NextRequest('http://localhost/api/github/pr/merge', {
       method: 'POST',
@@ -86,7 +114,8 @@ describe('POST /api/github/pr/merge', () => {
   });
 
   it('should successfully merge a PR', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet.mockResolvedValue({
       data: {
@@ -131,7 +160,8 @@ describe('POST /api/github/pr/merge', () => {
   });
 
   it('should handle different merge methods', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet.mockResolvedValue({
       data: {
@@ -173,7 +203,8 @@ describe('POST /api/github/pr/merge', () => {
   });
 
   it('should return 422 if PR is not mergeable', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet.mockResolvedValue({
       data: {
@@ -200,7 +231,8 @@ describe('POST /api/github/pr/merge', () => {
   });
 
   it('should return 422 if PR is a draft', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet.mockResolvedValue({
       data: {
@@ -227,7 +259,8 @@ describe('POST /api/github/pr/merge', () => {
   });
 
   it('should handle merge conflict errors', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet.mockResolvedValue({
       data: {
@@ -255,7 +288,8 @@ describe('POST /api/github/pr/merge', () => {
   });
 
   it('should handle PR not found errors', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet.mockRejectedValue({ status: 404 });
 
@@ -276,7 +310,8 @@ describe('POST /api/github/pr/merge', () => {
   });
 
   it('should handle insufficient permissions errors', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet.mockResolvedValue({
       data: {
@@ -304,7 +339,8 @@ describe('POST /api/github/pr/merge', () => {
   });
 
   it('should handle validation errors with custom message', async () => {
-    mockGetServerSession.mockResolvedValue({ accessToken: 'token123' });
+    mockGetServerSession.mockResolvedValue({ user: { id: 'user123' } });
+    githubConnections.get.mockResolvedValue({ accessToken: 'token123' });
     
     mockPullsGet.mockResolvedValue({
       data: {

@@ -2,15 +2,25 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { Octokit } from '@octokit/rest';
+import { githubConnections } from '@/lib/redis';
 
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.accessToken) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 }
+      );
+    }
+
+    const connection = await githubConnections.get(session.user.id);
+    
+    if (!connection) {
+      return NextResponse.json(
+        { error: 'GitHub not connected' },
+        { status: 400 }
       );
     }
 
@@ -24,7 +34,7 @@ export async function POST(request: NextRequest) {
     }
 
     const octokit = new Octokit({
-      auth: session.accessToken,
+      auth: connection.accessToken,
     });
 
     // Get PR details to check mergeability
