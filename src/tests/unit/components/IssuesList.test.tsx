@@ -1,8 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { IssuesList } from '@/components/IssuesList';
+import { GitHubIssue } from '@/lib/types/github';
 
-const mockIssues = [
+const mockIssues: GitHubIssue[] = [
   {
     id: 1,
     number: 1,
@@ -19,6 +20,9 @@ const mockIssues = [
       { id: 2, name: 'urgent', color: '0000ff' },
     ],
     comments: 5,
+    closed_at: null,
+    body: 'Test issue body 1',
+    html_url: 'https://github.com/test/repo/issues/1',
   },
   {
     id: 2,
@@ -34,6 +38,9 @@ const mockIssues = [
     labels: [],
     comments: 0,
     pull_request: true,
+    closed_at: new Date().toISOString(),
+    body: 'Test issue body 2',
+    html_url: 'https://github.com/test/repo/issues/2',
   },
 ];
 

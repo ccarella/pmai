@@ -3,31 +3,12 @@
 import React from 'react';
 import { Card } from './ui/Card';
 import { formatDistanceToNow } from 'date-fns';
-
-interface Issue {
-  id: number;
-  number: number;
-  title: string;
-  state: string;
-  created_at: string;
-  updated_at: string;
-  user: {
-    login: string;
-    avatar_url: string;
-  };
-  labels: Array<{
-    id: number;
-    name: string;
-    color: string;
-  }>;
-  comments: number;
-  pull_request?: boolean;
-}
+import { GitHubIssue } from '@/lib/types/github';
 
 interface IssuesListProps {
-  issues: Issue[];
-  selectedIssue: Issue | null;
-  onSelectIssue: (issue: Issue) => void;
+  issues: GitHubIssue[];
+  selectedIssue: GitHubIssue | null;
+  onSelectIssue: (issue: GitHubIssue) => void;
 }
 
 export const IssuesList: React.FC<IssuesListProps> = ({

@@ -7,46 +7,14 @@ import { LoadingSpinner } from './ui/LoadingSpinner';
 import { formatDistanceToNow } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-
-interface Issue {
-  id: number;
-  number: number;
-  title: string;
-  state: string;
-  created_at: string;
-  updated_at: string;
-  closed_at: string | null;
-  body: string | null;
-  user: {
-    login: string;
-    avatar_url: string;
-  };
-  labels: Array<{
-    id: number;
-    name: string;
-    color: string;
-  }>;
-  comments: number;
-  html_url: string;
-}
-
-interface Comment {
-  id: number;
-  body: string;
-  created_at: string;
-  updated_at: string;
-  user: {
-    login: string;
-    avatar_url: string;
-  };
-}
+import { GitHubIssue, GitHubComment } from '@/lib/types/github';
 
 interface IssueDetailProps {
-  issue: Issue;
+  issue: GitHubIssue;
 }
 
 export const IssueDetail: React.FC<IssueDetailProps> = ({ issue }) => {
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<GitHubComment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

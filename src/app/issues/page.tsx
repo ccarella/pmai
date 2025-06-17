@@ -8,34 +8,12 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
-
-interface Issue {
-  id: number;
-  number: number;
-  title: string;
-  state: string;
-  created_at: string;
-  updated_at: string;
-  closed_at: string | null;
-  body: string | null;
-  user: {
-    login: string;
-    avatar_url: string;
-  };
-  labels: Array<{
-    id: number;
-    name: string;
-    color: string;
-  }>;
-  comments: number;
-  html_url: string;
-  pull_request?: boolean;
-}
+import { GitHubIssue } from '@/lib/types/github';
 
 export default function IssuesPage() {
   const { status } = useSession();
-  const [issues, setIssues] = useState<Issue[]>([]);
-  const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null);
+  const [issues, setIssues] = useState<GitHubIssue[]>([]);
+  const [selectedIssue, setSelectedIssue] = useState<GitHubIssue | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [repository, setRepository] = useState<{ owner: string; name: string } | null>(null);

@@ -1,11 +1,12 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { IssueDetail } from '@/components/IssueDetail';
+import { GitHubIssue, GitHubComment } from '@/lib/types/github';
 import fetchMock from 'jest-fetch-mock';
 
 fetchMock.enableMocks();
 
-const mockIssue = {
+const mockIssue: GitHubIssue = {
   id: 1,
   number: 1,
   title: 'Test Issue Title',
@@ -26,7 +27,7 @@ const mockIssue = {
   html_url: 'https://github.com/test/repo/issues/1',
 };
 
-const mockComments = [
+const mockComments: GitHubComment[] = [
   {
     id: 1,
     body: 'First comment',
