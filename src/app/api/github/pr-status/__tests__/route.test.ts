@@ -4,16 +4,17 @@ import { getServerSession } from 'next-auth/next';
 // Mock dependencies
 jest.mock('next-auth/next');
 jest.mock('@/lib/redis');
-jest.mock('@/lib/github/pr-status');
+jest.mock('@/lib/github/pr-status', () => ({
+  fetchPRTestStatus: jest.fn(),
+}));
 
-// Import after mocking
-const { POST } = require('../route');
-const { githubConnections } = require('@/lib/redis');
-const prStatusModule = require('@/lib/github/pr-status');
+import { POST } from '../route';
+import { githubConnections } from '@/lib/redis';
+import { fetchPRTestStatus } from '@/lib/github/pr-status';
 
 const mockGetServerSession = getServerSession as jest.MockedFunction<typeof getServerSession>;
 const mockGithubConnections = githubConnections as jest.Mocked<typeof githubConnections>;
-const mockFetchPRTestStatus = jest.spyOn(prStatusModule, 'fetchPRTestStatus');
+const mockFetchPRTestStatus = fetchPRTestStatus as jest.MockedFunction<typeof fetchPRTestStatus>;
 
 describe('/api/github/pr-status', () => {
   beforeEach(() => {
@@ -104,9 +105,9 @@ describe('/api/github/pr-status', () => {
       selectedRepo: 'owner/repo',
     });
     mockFetchPRTestStatus
-      .mockResolvedValueOnce('success')
-      .mockResolvedValueOnce('pending')
-      .mockResolvedValueOnce('failure');
+      .mockResolvedValueOnce('success' as const)
+      .mockResolvedValueOnce('pending' as const)
+      .mockResolvedValueOnce('failure' as const);
 
     const req = new NextRequest('http://localhost/api/github/pr-status', {
       method: 'POST',
