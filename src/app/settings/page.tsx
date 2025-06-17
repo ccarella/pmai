@@ -8,9 +8,12 @@ import { ThemeToggle } from '@/components/ui/ThemeToggle'
 import { motion } from 'framer-motion'
 import { fadeIn } from '@/lib/animations/variants'
 import Link from 'next/link'
+import { useOnboarding } from '@/components/providers/OnboardingProvider'
+import { getOnboardingSteps } from '@/lib/services/onboarding'
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
+  const { status: onboardingStatus, isComplete: isOnboardingComplete } = useOnboarding()
   const [selectedRepo, setSelectedRepo] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [githubConfigured, setGithubConfigured] = useState(true)
@@ -70,6 +73,38 @@ export default function SettingsPage() {
           <h1 className="text-3xl sm:text-4xl font-bold text-foreground">Settings</h1>
           <p className="text-sm sm:text-base text-muted px-2">Connect your GitHub account to publish issues directly</p>
         </div>
+
+        {onboardingStatus && !isOnboardingComplete && !onboardingStatus.completedAt && !onboardingStatus.skippedAt && (
+          <Card className="p-4 sm:p-6 bg-accent/10 border-accent/30">
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-foreground">Complete Your Setup</h2>
+              <p className="text-sm text-muted">
+                You&apos;re almost ready! Complete these steps to start creating AI-powered GitHub issues:
+              </p>
+              <div className="space-y-2">
+                {onboardingStatus && getOnboardingSteps(onboardingStatus).map((step) => (
+                  <div key={step.id} className="flex items-center gap-3 text-sm">
+                    {step.completed ? (
+                      <svg className="w-5 h-5 text-success flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <div className="w-5 h-5 rounded-full border-2 border-muted flex-shrink-0" />
+                    )}
+                    <span className={step.completed ? 'text-success' : 'text-muted'}>
+                      {step.title}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <Link href="/onboarding">
+                <Button variant="primary" size="sm" className="mt-2">
+                  Continue Setup
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        )}
 
         <Card className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           <div className="space-y-3 sm:space-y-4">

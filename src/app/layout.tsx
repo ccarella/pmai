@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
+import { OnboardingProvider } from "@/components/providers/OnboardingProvider";
 import { Header } from "@/components/Header";
 
 const geistSans = Geist({
@@ -54,13 +55,15 @@ export default function RootLayout({
       >
         <ThemeProvider defaultTheme="system">
           <SessionProvider>
-            <Header />
-            <div className="relative min-h-screen pt-[104px]">
-              <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card-bg opacity-50 pointer-events-none" />
-              <div className="relative z-10">
-                {children}
+            <OnboardingProvider>
+              <Header />
+              <div className="relative min-h-screen pt-[104px]">
+                <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card-bg opacity-50 pointer-events-none" />
+                <div className="relative z-10">
+                  {children}
+                </div>
               </div>
-            </div>
+            </OnboardingProvider>
           </SessionProvider>
         </ThemeProvider>
       </body>

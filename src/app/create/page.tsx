@@ -8,12 +8,16 @@ import { pageVariants } from '@/lib/animations/variants';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
+import { useOnboardingGuard } from '@/lib/hooks/useOnboardingGuard';
 
 export default function CreateIssuePage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [requiresApiKey, setRequiresApiKey] = useState(false);
+  
+  // Check onboarding status
+  useOnboardingGuard();
 
   const handleSubmit = async (data: { title: string; prompt: string }) => {
     setIsSubmitting(true);

@@ -15,6 +15,8 @@ const customJestConfig = {
     '^octokit$': '<rootDir>/tests/__mocks__/octokit.js',
     '^react-markdown$': '<rootDir>/tests/__mocks__/react-markdown.js',
     '^remark-gfm$': '<rootDir>/tests/__mocks__/remark-gfm.js',
+    '^openai$': '<rootDir>/tests/__mocks__/openai.js',
+    '^lucide-react$': '<rootDir>/tests/__mocks__/lucide-react.js',
   },
   transformIgnorePatterns: [
     'node_modules/(?!(octokit|@octokit|@upstash|uncrypto|universal-github-app-jwt|@github|universal-user-agent|before-after-hook|openapi-typescript-fetch|jose|openid-client|next-auth|react-markdown|remark-gfm|date-fns)/)',
