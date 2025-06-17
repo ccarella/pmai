@@ -5,6 +5,7 @@ import { SessionProvider } from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { OnboardingProvider } from "@/components/providers/OnboardingProvider";
 import { Header } from "@/components/Header";
+import { ToastContainer } from "@/components/ui/Toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -57,6 +58,7 @@ export default function RootLayout({
           <SessionProvider>
             <OnboardingProvider>
               <Header />
+              <ToastContainer />
               <div className="relative min-h-screen pt-[104px]">
                 <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-card-bg opacity-50 pointer-events-none" />
                 <div className="relative z-10">

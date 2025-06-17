@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { SmartPromptForm } from '@/components/forms/SmartPromptForm';
@@ -9,15 +9,52 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import Link from 'next/link';
 import { useOnboardingGuard } from '@/lib/hooks/useOnboardingGuard';
+import { useSession } from 'next-auth/react';
+import { showToast } from '@/components/ui/Toast';
 
 export default function CreateIssuePage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [requiresApiKey, setRequiresApiKey] = useState(false);
+  const [skipReview, setSkipReview] = useState(false);
+  const [selectedRepo, setSelectedRepo] = useState<string | null>(null);
   
   // Check onboarding status
   useOnboardingGuard();
+
+  useEffect(() => {
+    // Fetch skip review setting and selected repo if user is signed in
+    if (session?.user?.id) {
+      fetchSkipReviewSetting();
+      fetchSelectedRepo();
+    }
+  }, [session]);
+
+  const fetchSkipReviewSetting = async () => {
+    try {
+      const response = await fetch('/api/user/skip-review');
+      if (response.ok) {
+        const data = await response.json();
+        setSkipReview(data.skipReview);
+      }
+    } catch (error) {
+      console.error('Error fetching skip review setting:', error);
+    }
+  };
+
+  const fetchSelectedRepo = async () => {
+    try {
+      const response = await fetch('/api/github/selected-repo');
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedRepo(data.selectedRepo);
+      }
+    } catch (error) {
+      console.error('Error fetching selected repo:', error);
+    }
+  };
 
   const handleSubmit = async (data: { title: string; prompt: string }) => {
     setIsSubmitting(true);
@@ -44,9 +81,53 @@ export default function CreateIssuePage() {
         throw new Error(result.error || 'Failed to create issue');
       }
       
-      // Store the result and navigate to preview
-      localStorage.setItem('created-issue', JSON.stringify(result));
-      router.push('/preview');
+      // Check if skip review is enabled and we have a selected repo
+      if (skipReview && selectedRepo && session?.user) {
+        // Directly publish to GitHub
+        try {
+          const publishResponse = await fetch('/api/github/publish', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              title: result.generatedTitle || data.title,
+              body: result.markdown,
+              repository: selectedRepo,
+              labels: [result.summary.type],
+            }),
+          });
+
+          if (!publishResponse.ok) {
+            const publishError = await publishResponse.json();
+            throw new Error(publishError.error || 'Failed to publish to GitHub');
+          }
+
+          const publishResult = await publishResponse.json();
+          
+          // Show success toast
+          showToast('Issue published successfully!', 'success');
+          
+          // Store the result for the success page
+          localStorage.setItem('published-issue', JSON.stringify({
+            issueUrl: publishResult.issueUrl,
+            repository: selectedRepo,
+            title: result.generatedTitle || data.title,
+          }));
+          
+          // Navigate to success page
+          router.push('/create/success');
+        } catch (publishError) {
+          console.error('Error publishing to GitHub:', publishError);
+          // If publishing fails, fall back to preview page
+          localStorage.setItem('created-issue', JSON.stringify(result));
+          router.push('/preview');
+        }
+      } else {
+        // Store the result and navigate to preview
+        localStorage.setItem('created-issue', JSON.stringify(result));
+        router.push('/preview');
+      }
       
     } catch (error) {
       console.error('Error creating issue:', error);
