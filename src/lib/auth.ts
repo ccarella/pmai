@@ -1,6 +1,7 @@
 import { NextAuthOptions } from 'next-auth'
 import GithubProvider from 'next-auth/providers/github'
 import { githubConnections, type GitHubConnection } from './redis'
+import { userProfiles } from './services/user-storage'
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -17,7 +18,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       console.log('GitHub SignIn Callback Debug:')
       console.log('- Provider:', account?.provider)
       console.log('- Has access token:', !!account?.access_token)
@@ -36,6 +37,13 @@ export const authOptions: NextAuthOptions = {
         }
         
         await githubConnections.set(user.id, connection)
+        
+        // Create or update user profile
+        await userProfiles.createOrUpdate(user.id, {
+          email: user.email || '',
+          name: user.name || profile?.name,
+          image: user.image || profile?.avatar_url,
+        })
       }
       return true
     },

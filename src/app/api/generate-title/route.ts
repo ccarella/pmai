@@ -2,22 +2,28 @@ import { NextRequest, NextResponse } from 'next/server';
 import { AIEnhancementService } from '@/lib/services/ai-enhancement';
 import { checkRateLimit, getRateLimitHeaders } from '@/lib/utils/rate-limit';
 import { z } from 'zod';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { userProfiles } from '@/lib/services/user-storage';
 
-// Initialize AI service (singleton pattern)
-let aiService: AIEnhancementService | null = null;
-
-function getAIService(): AIEnhancementService | null {
-  const apiKey = process.env.OPENAI_API_KEY;
-  
-  if (!apiKey) {
-    aiService = null;
-    return null;
+// Function to get AI service with user-specific API key
+async function getAIService(userId?: string): Promise<AIEnhancementService | null> {
+  // First try to get user-specific API key
+  if (userId) {
+    const userApiKey = await userProfiles.getOpenAIKey(userId);
+    if (userApiKey) {
+      return new AIEnhancementService(userApiKey);
+    }
   }
   
-  if (!aiService) {
-    aiService = new AIEnhancementService(apiKey);
+  // Fall back to system API key if available
+  const systemApiKey = process.env.OPENAI_API_KEY;
+  if (systemApiKey) {
+    return new AIEnhancementService(systemApiKey);
   }
-  return aiService;
+  
+  // No API key available
+  return null;
 }
 
 // Request validation schema
@@ -33,6 +39,10 @@ interface TitleGenerationResponse {
 
 export async function POST(request: NextRequest) {
   try {
+    // Get user session
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
+
     // Check rate limit - more lenient for title generation
     const rateLimitRequests = parseInt(process.env.RATE_LIMIT_REQUESTS_PER_HOUR || '50');
     const rateLimit = await checkRateLimit(request, rateLimitRequests);
@@ -54,8 +64,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = generateTitleSchema.parse(body);
     
-    // Get AI service
-    const service = getAIService();
+    // Get AI service with user-specific API key
+    const service = await getAIService(userId);
     
     // If no service available (no API key), return fallback title
     if (!service) {
@@ -93,6 +103,18 @@ export async function POST(request: NextRequest) {
 
     // Generate title using AI
     const titleResponse = await generateTitle(service, validatedData.prompt);
+    
+    // Track usage stats for authenticated user
+    if (userId && titleResponse.isGenerated) {
+      const usage = service.getUsageStats();
+      if (usage.totalTokens > 0) {
+        await userProfiles.updateUsageStats(
+          userId,
+          usage.totalTokens,
+          usage.estimatedCost
+        );
+      }
+    }
     
     return NextResponse.json(
       titleResponse,
