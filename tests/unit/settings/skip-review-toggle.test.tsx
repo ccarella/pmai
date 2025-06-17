@@ -77,7 +77,7 @@ describe('Settings Page - Skip Review Toggle', () => {
     await waitFor(() => {
       expect(screen.getByText('Issue Creation')).toBeInTheDocument()
       expect(screen.getByText('Skip Review')).toBeInTheDocument()
-      expect(screen.getByText('Directly publish issues to GitHub without the review step')).toBeInTheDocument()
+      expect(screen.getByText('Directly publish issues to GitHub without the review step (synchronous)')).toBeInTheDocument()
     })
 
     const switchElement = screen.getByRole('switch', { name: /skip-review/i })

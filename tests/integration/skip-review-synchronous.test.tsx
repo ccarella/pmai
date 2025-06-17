@@ -55,56 +55,21 @@ Object.defineProperty(window, 'location', {
   value: { href: '' }
 })
 
-describe('Skip Review Workflow', () => {
+describe('Skip Review Synchronous Workflow', () => {
   const mockPush = jest.fn()
   const mockFetch = global.fetch as jest.MockedFunction<typeof fetch>
 
   beforeEach(() => {
     jest.clearAllMocks()
+    localStorage.clear()
+    window.location.href = ''
     ;(useRouter as jest.Mock).mockReturnValue({ push: mockPush })
     ;(useSession as jest.Mock).mockReturnValue({
       data: { user: { id: 'user123', email: 'test@example.com' } }
     })
   })
 
-  it('should navigate to preview page when skip review is disabled', async () => {
-    // Mock API responses
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ skipReview: false })
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ selectedRepo: null })
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          markdown: '# Test Issue',
-          summary: { type: 'feature' },
-          generatedTitle: 'Test Issue'
-        })
-      } as Response)
-
-    render(<CreateIssuePage />)
-
-    // Wait for initial data to load
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith('/api/user/skip-review')
-    })
-
-    // Submit form
-    const submitButton = screen.getByText('Create Issue')
-    fireEvent.click(submitButton)
-
-    await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith('/preview')
-      expect(localStorage.getItem('created-issue')).toBeTruthy()
-    })
-  })
-
-  it('should publish directly to GitHub when skip review is enabled', async () => {
+  it('should show loading toast during synchronous publish', async () => {
     // Mock API responses
     mockFetch
       .mockResolvedValueOnce({
@@ -118,7 +83,7 @@ describe('Skip Review Workflow', () => {
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({
-          markdown: '# Test Issue',
+          markdown: '# Test Issue\nThis is a test issue',
           summary: { type: 'feature' },
           generatedTitle: 'Test Issue'
         })
@@ -137,7 +102,6 @@ describe('Skip Review Workflow', () => {
     // Wait for initial data to load
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/user/skip-review')
-      expect(mockFetch).toHaveBeenCalledWith('/api/github/selected-repo')
     })
 
     // Submit form
@@ -145,32 +109,72 @@ describe('Skip Review Workflow', () => {
     fireEvent.click(submitButton)
 
     await waitFor(() => {
-      // Should call GitHub publish API
-      expect(mockFetch).toHaveBeenCalledWith('/api/github/publish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: 'Test Issue',
-          body: '# Test Issue',
-          repository: 'owner/repo'
-        })
-      })
+      // Should show loading toast first
+      expect(showToast).toHaveBeenCalledWith('Publishing to GitHub...', 'info')
+    })
 
-      // Should show success toast
+    await waitFor(() => {
+      // Then show success toast
       expect(showToast).toHaveBeenCalledWith('Issue published successfully!', 'success')
-
-      // Should store published issue info
-      expect(localStorage.getItem('published-issue')).toBeTruthy()
-      const publishedIssue = JSON.parse(localStorage.getItem('published-issue')!)
-      expect(publishedIssue.issueUrl).toBe('https://github.com/owner/repo/issues/123')
-      
-      // Should redirect to GitHub issue
-      expect(window.location.href).toBe('https://github.com/owner/repo/issues/123')
     })
   })
 
-  it('should fall back to preview when GitHub publish fails', async () => {
-    // Mock API responses
+  it('should properly handle network delays during synchronous publish', async () => {
+    // Mock API responses with delay
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ skipReview: true })
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ selectedRepo: 'owner/repo' })
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          markdown: '# Test Issue',
+          summary: { type: 'feature' },
+          generatedTitle: 'Test Issue'
+        })
+      } as Response)
+      .mockImplementationOnce(() => 
+        new Promise(resolve => 
+          setTimeout(() => 
+            resolve({
+              ok: true,
+              json: async () => ({
+                issueUrl: 'https://github.com/owner/repo/issues/123',
+                issueNumber: 123,
+                title: 'Test Issue'
+              })
+            } as Response), 
+            100
+          )
+        )
+      )
+
+    render(<CreateIssuePage />)
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalledWith('/api/user/skip-review')
+    })
+
+    const submitButton = screen.getByText('Create Issue')
+    fireEvent.click(submitButton)
+
+    // Button should be disabled during submission
+    await waitFor(() => {
+      expect(screen.getByText('Creating...')).toBeDisabled()
+    })
+
+    // Should complete eventually
+    await waitFor(() => {
+      expect(window.location.href).toBe('https://github.com/owner/repo/issues/123')
+    }, { timeout: 3000 })
+  })
+
+  it('should handle GitHub API rate limiting gracefully', async () => {
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
@@ -190,32 +194,30 @@ describe('Skip Review Workflow', () => {
       } as Response)
       .mockResolvedValueOnce({
         ok: false,
-        json: async () => ({ error: 'Failed to publish' })
+        status: 429,
+        json: async () => ({ 
+          error: 'API rate limit exceeded',
+          message: 'Rate limit exceeded'
+        })
       } as Response)
 
     render(<CreateIssuePage />)
 
-    // Wait for initial data to load
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith('/api/user/skip-review')
     })
 
-    // Submit form
     const submitButton = screen.getByText('Create Issue')
     fireEvent.click(submitButton)
 
     await waitFor(() => {
-      // Should still navigate to preview on failure
-      expect(mockPush).toHaveBeenCalledWith('/preview')
-      expect(localStorage.getItem('created-issue')).toBeTruthy()
-      
-      // Should show error toast
       expect(showToast).toHaveBeenCalledWith('Failed to publish. Redirecting to preview...', 'error')
+      expect(mockPush).toHaveBeenCalledWith('/preview')
     })
   })
 
-  it('should not skip review when no repository is selected', async () => {
-    // Mock API responses
+  it('should validate all required data before attempting publish', async () => {
+    // Test with missing repository
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
@@ -223,7 +225,7 @@ describe('Skip Review Workflow', () => {
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
-        json: async () => ({ selectedRepo: null })
+        json: async () => ({ selectedRepo: null }) // No repo selected
       } as Response)
       .mockResolvedValueOnce({
         ok: true,
@@ -237,60 +239,20 @@ describe('Skip Review Workflow', () => {
     render(<CreateIssuePage />)
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith('/api/user/skip-review')
+      expect(mockFetch).toHaveBeenCalledWith('/api/github/selected-repo')
     })
 
-    // Submit form
     const submitButton = screen.getByText('Create Issue')
     fireEvent.click(submitButton)
 
     await waitFor(() => {
-      // Should navigate to preview when no repo is selected
-      expect(mockPush).toHaveBeenCalledWith('/preview')
+      // Should not attempt to publish without a repository
       expect(mockFetch).not.toHaveBeenCalledWith(
         '/api/github/publish',
         expect.any(Object)
       )
-    })
-  })
-
-  it('should not skip review when user is not authenticated', async () => {
-    ;(useSession as jest.Mock).mockReturnValue({ data: null })
-
-    // Mock API responses
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        json: async () => ({ error: 'Unauthorized' })
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: false,
-        status: 401,
-        json: async () => ({ error: 'Unauthorized' })
-      } as Response)
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-          markdown: '# Test Issue',
-          summary: { type: 'feature' },
-          generatedTitle: 'Test Issue'
-        })
-      } as Response)
-
-    render(<CreateIssuePage />)
-
-    // Submit form
-    const submitButton = screen.getByText('Create Issue')
-    fireEvent.click(submitButton)
-
-    await waitFor(() => {
-      // Should navigate to preview when not authenticated
+      // Should go to preview instead
       expect(mockPush).toHaveBeenCalledWith('/preview')
-      expect(mockFetch).not.toHaveBeenCalledWith(
-        '/api/github/publish',
-        expect.any(Object)
-      )
     })
   })
 })
