@@ -1,0 +1,114 @@
+'use client';
+
+import React from 'react';
+import { Card } from './ui/Card';
+import { formatDistanceToNow } from 'date-fns';
+import { GitHubIssue } from '@/lib/types/github';
+
+interface IssuesListProps {
+  issues: GitHubIssue[];
+  selectedIssue: GitHubIssue | null;
+  onSelectIssue: (issue: GitHubIssue) => void;
+}
+
+export const IssuesList: React.FC<IssuesListProps> = ({
+  issues,
+  selectedIssue,
+  onSelectIssue,
+}) => {
+  if (issues.length === 0) {
+    return (
+      <Card className="p-8 text-center">
+        <p className="text-muted-foreground">No issues found</p>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {issues.map((issue) => (
+        <Card
+          key={issue.id}
+          className={`p-4 cursor-pointer transition-all hover:shadow-md ${
+            selectedIssue?.id === issue.id
+              ? 'ring-2 ring-accent bg-accent/10'
+              : 'hover:bg-accent/5'
+          }`}
+          onClick={() => onSelectIssue(issue)}
+        >
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0">
+              {issue.state === 'open' ? (
+                <svg
+                  className="w-5 h-5 text-green-500"
+                  fill="currentColor"
+                  viewBox="0 0 16 16"
+                >
+                  <path d="M8 9.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+                  <path fillRule="evenodd" d="M8 0a8 8 0 100 16A8 8 0 008 0zM1.5 8a6.5 6.5 0 1113 0 6.5 6.5 0 01-13 0z" />
+                </svg>
+              ) : (
+                <svg
+                  className="w-5 h-5 text-purple-500"
+                  fill="currentColor"
+                  viewBox="0 0 16 16"
+                >
+                  <path d="M11.28 6.78a.75.75 0 00-1.06-1.06L7.25 8.69 5.78 7.22a.75.75 0 00-1.06 1.06l2 2a.75.75 0 001.06 0l3.5-3.5z" />
+                  <path fillRule="evenodd" d="M16 8A8 8 0 110 8a8 8 0 0116 0zm-1.5 0a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z" />
+                </svg>
+              )}
+            </div>
+
+            <div className="flex-grow min-w-0">
+              <h3 className="text-sm font-medium text-foreground truncate pr-2">
+                {issue.title}
+              </h3>
+              
+              <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                <span>#{issue.number}</span>
+                <span>•</span>
+                <span>{formatDistanceToNow(new Date(issue.created_at))} ago</span>
+                {issue.comments > 0 && (
+                  <>
+                    <span>•</span>
+                    <span>{issue.comments} comments</span>
+                  </>
+                )}
+              </div>
+
+              {issue.labels.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {issue.labels.map((label) => (
+                    <span
+                      key={label.id}
+                      className="inline-flex px-2 py-0.5 text-xs rounded-full"
+                      style={{
+                        backgroundColor: `#${label.color}20`,
+                        color: `#${label.color}`,
+                        border: `1px solid #${label.color}40`,
+                      }}
+                    >
+                      {label.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {issue.pull_request && (
+              <div className="flex-shrink-0">
+                <svg
+                  className="w-4 h-4 text-muted-foreground"
+                  fill="currentColor"
+                  viewBox="0 0 16 16"
+                >
+                  <path fillRule="evenodd" d="M7.177 3.073L9.573.677A.25.25 0 0110 .854v4.792a.25.25 0 01-.427.177L7.177 3.427a.25.25 0 010-.354zM3.75 2.5a.75.75 0 100 1.5.75.75 0 000-1.5zm-2.25.75a2.25 2.25 0 113 2.122v5.256a2.251 2.251 0 11-1.5 0V5.372A2.25 2.25 0 011.5 3.25zM11 2.5h-1V4h1a1 1 0 011 1v5.628a2.251 2.251 0 101.5 0V5A2.5 2.5 0 0011 2.5zm1 10.25a.75.75 0 111.5 0 .75.75 0 01-1.5 0zM3.75 12a.75.75 0 100 1.5.75.75 0 000-1.5z" />
+                </svg>
+              </div>
+            )}
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+};

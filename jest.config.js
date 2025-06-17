@@ -13,9 +13,11 @@ const customJestConfig = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@upstash/redis$': '<rootDir>/tests/__mocks__/@upstash/redis.js',
     '^octokit$': '<rootDir>/tests/__mocks__/octokit.js',
+    '^react-markdown$': '<rootDir>/tests/__mocks__/react-markdown.js',
+    '^remark-gfm$': '<rootDir>/tests/__mocks__/remark-gfm.js',
   },
   transformIgnorePatterns: [
-    'node_modules/(?!(octokit|@octokit|@upstash|uncrypto|universal-github-app-jwt|@github|universal-user-agent|before-after-hook|openapi-typescript-fetch|jose|openid-client|next-auth)/)',
+    'node_modules/(?!(octokit|@octokit|@upstash|uncrypto|universal-github-app-jwt|@github|universal-user-agent|before-after-hook|openapi-typescript-fetch|jose|openid-client|next-auth|react-markdown|remark-gfm|date-fns)/)',
   ],
   testMatch: [
     '<rootDir>/tests/**/*.test.{js,jsx,ts,tsx}',
