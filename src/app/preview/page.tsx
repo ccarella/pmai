@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { PublishButton } from '@/components/PublishButton';
+import { PublishButtonWithConfirmation } from '@/components/PublishButtonWithConfirmation';
 import { pageVariants } from '@/lib/animations/variants';
+import { useRepository } from '@/contexts/RepositoryContext';
 
 interface GeneratedIssue {
   original: string;
@@ -21,6 +23,7 @@ interface GeneratedIssue {
 
 export default function PreviewPage() {
   const router = useRouter();
+  const { selectedRepo, addedRepos } = useRepository();
   const [issue, setIssue] = useState<GeneratedIssue | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -56,6 +59,10 @@ export default function PreviewPage() {
     const titleMatch = markdown.match(/^#\s+(.+)$/m);
     return titleMatch ? titleMatch[1] : 'Generated Issue';
   };
+
+  const selectedRepoInfo = selectedRepo 
+    ? addedRepos.find(repo => repo.full_name === selectedRepo)
+    : null;
 
   if (!issue) {
     return (
@@ -105,27 +112,58 @@ export default function PreviewPage() {
         {/* Summary Card */}
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4 text-foreground">Issue Summary</h2>
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="font-medium text-muted">Type:</span>
-              <div className="mt-1">
-                <span className="inline-block px-2 py-1 bg-accent/20 text-accent rounded-md text-xs font-medium capitalize">
-                  {issue.summary.type}
-                </span>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="font-medium text-muted">Type:</span>
+                <div className="mt-1">
+                  <span className="inline-block px-2 py-1 bg-accent/20 text-accent rounded-md text-xs font-medium capitalize">
+                    {issue.summary.type}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <span className="font-medium text-muted">Priority:</span>
+                <div className="mt-1">
+                  <span className={`inline-block px-2 py-1 rounded-md text-xs font-medium capitalize ${
+                    issue.summary.priority === 'high' 
+                      ? 'bg-red-500/20 text-red-400' 
+                      : issue.summary.priority === 'low'
+                      ? 'bg-green-500/20 text-green-400'
+                      : 'bg-yellow-500/20 text-yellow-400'
+                  }`}>
+                    {issue.summary.priority}
+                  </span>
+                </div>
               </div>
             </div>
-            <div>
-              <span className="font-medium text-muted">Priority:</span>
+            
+            {/* Repository Information */}
+            <div className="border-t border-border pt-4">
+              <span className="font-medium text-muted text-sm">Repository:</span>
               <div className="mt-1">
-                <span className={`inline-block px-2 py-1 rounded-md text-xs font-medium capitalize ${
-                  issue.summary.priority === 'high' 
-                    ? 'bg-red-500/20 text-red-400' 
-                    : issue.summary.priority === 'low'
-                    ? 'bg-green-500/20 text-green-400'
-                    : 'bg-yellow-500/20 text-yellow-400'
-                }`}>
-                  {issue.summary.priority}
-                </span>
+                {selectedRepo ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-mono text-foreground">
+                      {selectedRepo}
+                    </span>
+                    {selectedRepoInfo?.private && (
+                      <span className="inline-block px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-md text-xs font-medium">
+                        Private
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-muted">No repository selected</span>
+                    <Link 
+                      href="/settings/github" 
+                      className="text-primary hover:text-primary-hover underline"
+                    >
+                      Select a repository
+                    </Link>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -164,7 +202,7 @@ export default function PreviewPage() {
             <Button variant="secondary" onClick={handleEdit} className="w-full sm:w-auto">
               Create New Issue
             </Button>
-            <PublishButton
+            <PublishButtonWithConfirmation
                 title={extractTitle(issue.markdown)}
                 body={issue.markdown}
                 labels={[issue.summary.type]}
