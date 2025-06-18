@@ -212,3 +212,90 @@ function parseLinkHeader(linkHeader: string | undefined) {
 
   return links;
 }
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+    const { issueNumber, title, body: issueBody, labels } = body;
+
+    if (!issueNumber) {
+      return NextResponse.json(
+        { error: 'Issue number is required' },
+        { status: 400 }
+      );
+    }
+
+    // Check if at least one field to update is provided
+    if (!title && !issueBody && !labels) {
+      return NextResponse.json(
+        { error: 'At least one field to update is required' },
+        { status: 400 }
+      );
+    }
+
+    const connection = await githubConnections.get(session.user.id);
+    
+    if (!connection) {
+      return NextResponse.json(
+        { error: 'GitHub not connected' },
+        { status: 400 }
+      );
+    }
+
+    const octokit = new Octokit({
+      auth: connection.accessToken,
+    });
+
+    const selectedRepo = connection.selectedRepo;
+
+    if (!selectedRepo) {
+      return NextResponse.json(
+        { error: 'No repository selected' },
+        { status: 400 }
+      );
+    }
+
+    const [owner, name] = selectedRepo.split('/');
+
+    // Update issue title and/or body
+    if (title || issueBody) {
+      const updateData: { title?: string; body?: string } = {};
+      if (title) updateData.title = title;
+      if (issueBody) updateData.body = issueBody;
+
+      await octokit.rest.issues.update({
+        owner,
+        repo: name,
+        issue_number: issueNumber,
+        ...updateData,
+      });
+    }
+
+    // Update labels if provided
+    if (labels !== undefined) {
+      await octokit.rest.issues.setLabels({
+        owner,
+        repo: name,
+        issue_number: issueNumber,
+        labels: labels,
+      });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error updating issue:', error);
+    return NextResponse.json(
+      { error: 'Failed to update issue' },
+      { status: 500 }
+    );
+  }
+}
