@@ -166,7 +166,16 @@ export default function IssuesPage() {
 
           <div className="lg:col-span-2">
             {selectedIssue ? (
-              <IssueDetail issue={selectedIssue} repository={repository || undefined} />
+              <IssueDetail 
+                issue={selectedIssue} 
+                repository={repository || undefined} 
+                editable={true}
+                autoSave={true}
+                onUpdate={() => {
+                  // Refresh the issues list to reflect changes
+                  refetch();
+                }}
+              />
             ) : (
               <Card className="p-8 text-center">
                 <p className="text-muted-foreground">
