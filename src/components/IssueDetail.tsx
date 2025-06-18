@@ -65,20 +65,7 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ issue, repository }) =
             className="flex-shrink-0"
           >
             <Button variant="ghost" size="sm">
-              <svg
-                className="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
-              GitHub
+              View on GitHub
             </Button>
           </a>
         </div>
@@ -186,7 +173,7 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({ issue, repository }) =
         )}
         
         {/* Merge PR Button - only shown for pull requests when repository info is available */}
-        {repository && issue.pull_request && (
+        {repository && issue.pull_request && typeof issue.pull_request === 'object' && (
           <MergePRButton
             issue={issue}
             repoOwner={repository.owner}

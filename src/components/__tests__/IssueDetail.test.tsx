@@ -204,6 +204,22 @@ describe('IssueDetail', () => {
     expect(card).toHaveClass('p-4', 'sm:p-6');
   });
 
+  it('renders GitHub link as text label without icon', () => {
+    render(<IssueDetail issue={mockIssue} />);
+
+    const githubLink = screen.getByRole('link', { name: /view on github/i });
+    expect(githubLink).toBeInTheDocument();
+    expect(githubLink).toHaveAttribute('href', mockIssue.html_url);
+    expect(githubLink).toHaveAttribute('target', '_blank');
+    expect(githubLink).toHaveAttribute('rel', 'noopener noreferrer');
+
+    // Verify the button contains only text, no SVG icon
+    const button = screen.getByRole('button', { name: /view on github/i });
+    expect(button).toBeInTheDocument();
+    expect(button.querySelector('svg')).not.toBeInTheDocument();
+    expect(button).toHaveTextContent('View on GitHub');
+  });
+
   describe('MergePRButton integration', () => {
     const mockPRIssue: GitHubIssue = {
       ...mockIssue,
