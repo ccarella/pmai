@@ -4,6 +4,7 @@ import React, { useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { IssuesList } from '@/components/IssuesList';
 import { IssueDetail } from '@/components/IssueDetail';
+import { IssueFilters } from '@/components/IssueFilters';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -111,7 +112,7 @@ export default function IssuesPage() {
         isPulling={isPulling}
         threshold={80}
       >
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-3xl font-bold mb-2">GitHub Issues</h1>
           {repository && (
             <p className="text-muted-foreground">
@@ -120,35 +121,14 @@ export default function IssuesPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* New pill-chip filters */}
+        <IssueFilters 
+          filters={filters} 
+          onFiltersChange={setFilters} 
+        />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           <div className="lg:col-span-1">
-            <div className="mb-4 space-y-2">
-              <select
-                value={filters.state}
-                onChange={(e) => setFilters({ state: e.target.value })}
-                className="w-full px-3 py-2 rounded-md bg-card-bg border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                aria-label="Filter issues by state"
-              >
-                <option value="open">Open Issues</option>
-                <option value="closed">Closed Issues</option>
-                <option value="all">All Issues</option>
-              </select>
-              
-              <select
-                value={`${filters.sort}-${filters.direction}`}
-                onChange={(e) => {
-                  const [sort, direction] = e.target.value.split('-');
-                  setFilters({ sort, direction });
-                }}
-                className="w-full px-3 py-2 rounded-md bg-card-bg border border-border text-foreground focus:outline-none focus:ring-2 focus:ring-accent"
-                aria-label="Sort issues"
-              >
-                <option value="created-desc">Newest First</option>
-                <option value="created-asc">Oldest First</option>
-                <option value="updated-desc">Recently Updated</option>
-                <option value="comments-desc">Most Commented</option>
-              </select>
-            </div>
 
             {loading && !isRefreshing ? (
               <div className="flex justify-center py-8">

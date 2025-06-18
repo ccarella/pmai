@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { GitHubIssue } from '@/lib/types/github';
 
 interface UseIssuesPaginationOptions {
@@ -34,6 +35,9 @@ export function useIssuesPagination(options: UseIssuesPaginationOptions = {}): U
     perPage = 20,
   } = options;
 
+  const router = useRouter();
+
+  // Initialize filters from defaults (URL params will be handled client-side)
   const [issues, setIssues] = useState<GitHubIssue[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -46,6 +50,7 @@ export function useIssuesPagination(options: UseIssuesPaginationOptions = {}): U
     sort: initialSort,
     direction: initialDirection,
   });
+  const [urlParamsLoaded, setUrlParamsLoaded] = useState(false);
 
   const fetchIssues = useCallback(async (pageNum: number, append = false) => {
     try {
@@ -108,16 +113,49 @@ export function useIssuesPagination(options: UseIssuesPaginationOptions = {}): U
   }, [fetchIssues]);
 
   const setFilters = useCallback((newFilters: { state?: string; sort?: string; direction?: string }) => {
-    setFiltersState(prev => ({ ...prev, ...newFilters }));
+    setFiltersState(prev => {
+      const updatedFilters = { ...prev, ...newFilters };
+      
+      // Update URL with new filter params
+      const params = new URLSearchParams();
+      params.set('state', updatedFilters.state);
+      params.set('sort', updatedFilters.sort);
+      params.set('direction', updatedFilters.direction);
+      
+      router.replace(`/issues?${params.toString()}`, { scroll: false });
+      
+      return updatedFilters;
+    });
     setPage(1);
     setHasMore(true);
     setIssues([]);
-  }, []);
+  }, [router]);
+
+  // Load URL parameters on client side
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !urlParamsLoaded) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlState = urlParams.get('state');
+      const urlSort = urlParams.get('sort');
+      const urlDirection = urlParams.get('direction');
+      
+      if (urlState || urlSort || urlDirection) {
+        setFiltersState(prev => ({
+          state: urlState || prev.state,
+          sort: urlSort || prev.sort,
+          direction: urlDirection || prev.direction,
+        }));
+      }
+      setUrlParamsLoaded(true);
+    }
+  }, [urlParamsLoaded]);
 
   // Initial fetch
   useEffect(() => {
-    fetchIssues(1, false);
-  }, [filters, fetchIssues]); // Re-fetch when filters change
+    if (urlParamsLoaded || typeof window === 'undefined') {
+      fetchIssues(1, false);
+    }
+  }, [filters, fetchIssues, urlParamsLoaded]); // Re-fetch when filters change
 
   return {
     issues,
