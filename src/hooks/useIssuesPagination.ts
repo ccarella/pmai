@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { GitHubIssue } from '@/lib/types/github';
 
 interface UseIssuesPaginationOptions {
@@ -34,6 +35,10 @@ export function useIssuesPagination(options: UseIssuesPaginationOptions = {}): U
     perPage = 20,
   } = options;
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  // Initialize filters from URL search params or defaults
   const [issues, setIssues] = useState<GitHubIssue[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -42,9 +47,9 @@ export function useIssuesPagination(options: UseIssuesPaginationOptions = {}): U
   const [hasMore, setHasMore] = useState(true);
   const [repository, setRepository] = useState<{ owner: string; name: string } | null>(null);
   const [filters, setFiltersState] = useState({
-    state: initialState,
-    sort: initialSort,
-    direction: initialDirection,
+    state: searchParams.get('state') || initialState,
+    sort: searchParams.get('sort') || initialSort,
+    direction: searchParams.get('direction') || initialDirection,
   });
 
   const fetchIssues = useCallback(async (pageNum: number, append = false) => {
@@ -108,11 +113,23 @@ export function useIssuesPagination(options: UseIssuesPaginationOptions = {}): U
   }, [fetchIssues]);
 
   const setFilters = useCallback((newFilters: { state?: string; sort?: string; direction?: string }) => {
-    setFiltersState(prev => ({ ...prev, ...newFilters }));
+    setFiltersState(prev => {
+      const updatedFilters = { ...prev, ...newFilters };
+      
+      // Update URL with new filter params
+      const params = new URLSearchParams();
+      params.set('state', updatedFilters.state);
+      params.set('sort', updatedFilters.sort);
+      params.set('direction', updatedFilters.direction);
+      
+      router.replace(`/issues?${params.toString()}`, { scroll: false });
+      
+      return updatedFilters;
+    });
     setPage(1);
     setHasMore(true);
     setIssues([]);
-  }, []);
+  }, [router]);
 
   // Initial fetch
   useEffect(() => {
