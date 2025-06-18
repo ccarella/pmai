@@ -1,14 +1,20 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import PreviewPage from '@/app/preview/page';
+import { RepositoryProvider } from '@/contexts/RepositoryContext';
 
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
 }));
 
-jest.mock('@/components/PublishButton', () => ({
-  PublishButton: ({ onSuccess }: { onSuccess: (url: string) => void }) => (
+jest.mock('next-auth/react', () => ({
+  useSession: jest.fn(),
+}));
+
+jest.mock('@/components/PublishButtonWithConfirmation', () => ({
+  PublishButtonWithConfirmation: ({ onSuccess }: { onSuccess: (url: string) => void }) => (
     <button onClick={() => onSuccess('https://github.com/repo/issues/1')}>
       Publish to GitHub
     </button>
@@ -35,6 +41,17 @@ describe('PreviewPage', () => {
       push: mockPush,
     });
     
+    (useSession as jest.Mock).mockReturnValue({
+      data: {
+        user: {
+          id: 'test-user-id',
+          name: 'Test User',
+          email: 'test@example.com'
+        }
+      },
+      status: 'authenticated'
+    });
+    
     Object.defineProperty(window, 'localStorage', {
       value: {
         getItem: jest.fn(),
@@ -51,12 +68,39 @@ describe('PreviewPage', () => {
       },
       writable: true,
     });
+
+    // Mock fetch for repository context
+    global.fetch = jest.fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ selectedRepo: 'octocat/Hello-World' })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          repositories: [{
+            id: 1,
+            name: 'Hello-World',
+            full_name: 'octocat/Hello-World',
+            private: false,
+            owner: { login: 'octocat' }
+          }]
+        })
+      });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('renders loading state initially', () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(null);
     
-    render(<PreviewPage />);
+    render(
+      <RepositoryProvider>
+        <PreviewPage />
+      </RepositoryProvider>
+    );
     
     expect(screen.getByText('Loading your issue...')).toBeInTheDocument();
   });
@@ -64,19 +108,31 @@ describe('PreviewPage', () => {
   it('redirects to /create if no issue data in localStorage', async () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(null);
     
-    render(<PreviewPage />);
+    render(
+      <RepositoryProvider>
+        <PreviewPage />
+      </RepositoryProvider>
+    );
     
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/create');
     });
   });
 
-  it('displays issue content without tabs', () => {
+  it('displays issue content without tabs', async () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
     
-    render(<PreviewPage />);
+    render(
+      <RepositoryProvider>
+        <PreviewPage />
+      </RepositoryProvider>
+    );
+    
+    await waitFor(() => {
+      expect(screen.getByText('Issue Preview')).toBeInTheDocument();
+    });
     
     expect(screen.getByText('Issue Preview')).toBeInTheDocument();
     expect(screen.queryByText('Original')).not.toBeInTheDocument();
@@ -84,22 +140,38 @@ describe('PreviewPage', () => {
     expect(screen.queryByText('Claude Prompt')).not.toBeInTheDocument();
   });
 
-  it('displays GitHub Issue content directly', () => {
+  it('displays GitHub Issue content directly', async () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
     
-    render(<PreviewPage />);
+    render(
+      <RepositoryProvider>
+        <PreviewPage />
+      </RepositoryProvider>
+    );
+    
+    await waitFor(() => {
+      expect(screen.getByText(/User Authentication System/)).toBeInTheDocument();
+    });
     
     expect(screen.getByText(/User Authentication System/)).toBeInTheDocument();
   });
 
-  it('does not display original content', () => {
+  it('does not display original content', async () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
     
-    render(<PreviewPage />);
+    render(
+      <RepositoryProvider>
+        <PreviewPage />
+      </RepositoryProvider>
+    );
+    
+    await waitFor(() => {
+      expect(screen.queryByText(/Build a user authentication system/)).not.toBeInTheDocument();
+    });
     
     expect(screen.queryByText(/Build a user authentication system/)).not.toBeInTheDocument();
   });
@@ -110,7 +182,15 @@ describe('PreviewPage', () => {
       JSON.stringify(mockIssue)
     );
     
-    render(<PreviewPage />);
+    render(
+      <RepositoryProvider>
+        <PreviewPage />
+      </RepositoryProvider>
+    );
+    
+    await waitFor(() => {
+      expect(screen.getByText('Issue Preview')).toBeInTheDocument();
+    });
     
     const copyButton = screen.getByTitle('Copy to clipboard');
     fireEvent.click(copyButton);
@@ -120,12 +200,20 @@ describe('PreviewPage', () => {
     });
   });
 
-  it('displays issue summary without estimated effort', () => {
+  it('displays issue summary without estimated effort', async () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
     
-    render(<PreviewPage />);
+    render(
+      <RepositoryProvider>
+        <PreviewPage />
+      </RepositoryProvider>
+    );
+    
+    await waitFor(() => {
+      expect(screen.getByText('Issue Summary')).toBeInTheDocument();
+    });
     
     expect(screen.getByText('Issue Summary')).toBeInTheDocument();
     expect(screen.getByText('feature')).toBeInTheDocument();
@@ -134,12 +222,20 @@ describe('PreviewPage', () => {
     expect(screen.queryByText('Estimated Effort:')).not.toBeInTheDocument();
   });
 
-  it('handles Create New Issue button click', () => {
+  it('handles Create New Issue button click', async () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
     
-    render(<PreviewPage />);
+    render(
+      <RepositoryProvider>
+        <PreviewPage />
+      </RepositoryProvider>
+    );
+    
+    await waitFor(() => {
+      expect(screen.getByText('Create New Issue')).toBeInTheDocument();
+    });
     
     const createNewButton = screen.getByText('Create New Issue');
     fireEvent.click(createNewButton);
@@ -151,7 +247,11 @@ describe('PreviewPage', () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue('invalid json');
     const consoleError = jest.spyOn(console, 'error').mockImplementation();
     
-    render(<PreviewPage />);
+    render(
+      <RepositoryProvider>
+        <PreviewPage />
+      </RepositoryProvider>
+    );
     
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith('/create');
@@ -166,7 +266,15 @@ describe('PreviewPage', () => {
       JSON.stringify(mockIssue)
     );
     
-    render(<PreviewPage />);
+    render(
+      <RepositoryProvider>
+        <PreviewPage />
+      </RepositoryProvider>
+    );
+    
+    await waitFor(() => {
+      expect(screen.getByText('Issue Preview')).toBeInTheDocument();
+    });
     
     const copyButton = screen.getByTitle('Copy to clipboard');
     fireEvent.click(copyButton);
@@ -180,12 +288,20 @@ describe('PreviewPage', () => {
     }, { timeout: 3000 });
   });
 
-  it('displays Generated Content section properly', () => {
+  it('displays Generated Content section properly', async () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
     
-    render(<PreviewPage />);
+    render(
+      <RepositoryProvider>
+        <PreviewPage />
+      </RepositoryProvider>
+    );
+    
+    await waitFor(() => {
+      expect(screen.getByText('Generated Content')).toBeInTheDocument();
+    });
     
     expect(screen.getByText('Generated Content')).toBeInTheDocument();
     expect(screen.getByTitle('Copy to clipboard')).toBeInTheDocument();
@@ -195,12 +311,20 @@ describe('PreviewPage', () => {
     expect(preElement).toHaveClass('whitespace-pre-wrap', 'text-sm', 'font-mono');
   });
 
-  it('ensures clean UI without tab navigation', () => {
+  it('ensures clean UI without tab navigation', async () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
     
-    render(<PreviewPage />);
+    render(
+      <RepositoryProvider>
+        <PreviewPage />
+      </RepositoryProvider>
+    );
+    
+    await waitFor(() => {
+      expect(screen.getByText('Issue Preview')).toBeInTheDocument();
+    });
     
     // Check that there are no tab buttons
     const buttons = screen.getAllByRole('button');
