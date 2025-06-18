@@ -32,7 +32,8 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
   const [editValue, setEditValue] = useState(value);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const inputRef = useRef<any>(null);
 
   useEffect(() => {
     setEditValue(value);
@@ -121,7 +122,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
   return (
     <div className={cn('relative', className)}>
       <InputComponent
-        ref={inputRef as React.Ref<HTMLInputElement | HTMLTextAreaElement>}
+        ref={inputRef}
         type="text"
         value={editValue}
         onChange={(e) => setEditValue(e.target.value)}

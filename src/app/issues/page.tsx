@@ -173,7 +173,7 @@ export default function IssuesPage() {
                 autoSave={true}
                 onUpdate={() => {
                   // Refresh the issues list to reflect changes
-                  refetch();
+                  refresh();
                 }}
               />
             ) : (

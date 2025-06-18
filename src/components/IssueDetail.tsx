@@ -97,8 +97,8 @@ export const IssueDetail: React.FC<IssueDetailProps> = ({
       
       if (field === 'labels') {
         updateData.labels = (value as typeof issue.labels).map((label) => label.name);
-      } else {
-        updateData[field] = value;
+      } else if (field === 'title' || field === 'body') {
+        updateData[field] = value as string;
       }
 
       const response = await fetch('/api/github/issues', {
