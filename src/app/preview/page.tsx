@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { PublishButton } from '@/components/PublishButton';
 import { pageVariants } from '@/lib/animations/variants';
+import { useRepository } from '@/contexts/RepositoryContext';
 
 interface GeneratedIssue {
   original: string;
@@ -23,6 +24,7 @@ export default function PreviewPage() {
   const router = useRouter();
   const [issue, setIssue] = useState<GeneratedIssue | null>(null);
   const [copied, setCopied] = useState(false);
+  const { selectedRepo } = useRepository();
 
   useEffect(() => {
     // Load the generated issue from localStorage
@@ -106,6 +108,12 @@ export default function PreviewPage() {
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4 text-foreground">Issue Summary</h2>
           <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="font-medium text-muted">Repository:</span>
+              <div className="mt-1 text-foreground">
+                {selectedRepo ? selectedRepo : 'None selected'}
+              </div>
+            </div>
             <div>
               <span className="font-medium text-muted">Type:</span>
               <div className="mt-1">

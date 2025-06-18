@@ -2,9 +2,14 @@ import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { useRouter } from 'next/navigation';
 import PreviewPage from '@/app/preview/page';
+import { useRepository } from '@/contexts/RepositoryContext';
 
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(),
+}));
+
+jest.mock('@/contexts/RepositoryContext', () => ({
+  useRepository: jest.fn(),
 }));
 
 jest.mock('@/components/PublishButton', () => ({
@@ -33,6 +38,14 @@ describe('PreviewPage', () => {
     jest.clearAllMocks();
     (useRouter as jest.Mock).mockReturnValue({
       push: mockPush,
+    });
+
+    (useRepository as jest.Mock).mockReturnValue({
+      selectedRepo: 'owner/repo',
+      addedRepos: [],
+      isLoading: false,
+      switchRepository: jest.fn(),
+      refreshRepositories: jest.fn(),
     });
     
     Object.defineProperty(window, 'localStorage', {
@@ -124,10 +137,11 @@ describe('PreviewPage', () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
-    
+
     render(<PreviewPage />);
-    
+
     expect(screen.getByText('Issue Summary')).toBeInTheDocument();
+    expect(screen.getByText('owner/repo')).toBeInTheDocument();
     expect(screen.getByText('feature')).toBeInTheDocument();
     expect(screen.getByText('high')).toBeInTheDocument();
     expect(screen.queryByText('large')).not.toBeInTheDocument();
@@ -138,7 +152,7 @@ describe('PreviewPage', () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue(
       JSON.stringify(mockIssue)
     );
-    
+
     render(<PreviewPage />);
     
     const createNewButton = screen.getByText('Create New Issue');
@@ -146,6 +160,7 @@ describe('PreviewPage', () => {
     
     expect(mockPush).toHaveBeenCalledWith('/create');
   });
+
 
   it('handles malformed localStorage data gracefully', async () => {
     (window.localStorage.getItem as jest.Mock).mockReturnValue('invalid json');
