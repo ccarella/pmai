@@ -135,7 +135,7 @@ describe('Issues Page Integration', () => {
       expect(screen.getByText('First Issue')).toBeInTheDocument();
     });
 
-    const filterSelect = screen.getByRole('combobox');
+    const filterSelect = screen.getByLabelText('Filter issues by state');
     
     fetchMock.mockResponseOnce(
       JSON.stringify({
