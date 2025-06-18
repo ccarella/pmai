@@ -103,6 +103,11 @@ export default function CreateIssuePage() {
 
           const publishResult = await publishResponse.json();
           
+          // Validate the response has required fields
+          if (!publishResult.issueUrl || !publishResult.issueNumber) {
+            throw new Error('Invalid response from publish API - missing issue URL or number');
+          }
+          
           // Show success toast
           showToast('Issue published successfully!', 'success');
           
@@ -110,14 +115,23 @@ export default function CreateIssuePage() {
           localStorage.setItem('published-issue', JSON.stringify({
             issueUrl: publishResult.issueUrl,
             issueNumber: publishResult.issueNumber,
-            title: publishResult.title,
+            title: publishResult.title || result.generatedTitle || data.title,
             repository: selectedRepo,
           }));
           
           // Navigate to the GitHub issue
           window.location.href = publishResult.issueUrl;
+          // Don't reset isSubmitting here since we're navigating away
+          return;
         } catch (publishError) {
           console.error('Error publishing to GitHub:', publishError);
+          console.error('Publish error details:', {
+            error: publishError,
+            selectedRepo,
+            hasSession: !!session?.user,
+            skipReview,
+            result
+          });
           showToast('Failed to publish. Redirecting to preview...', 'error');
           // If publishing fails, fall back to preview
           localStorage.setItem('created-issue', JSON.stringify(result));

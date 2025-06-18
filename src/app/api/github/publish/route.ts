@@ -71,6 +71,7 @@ export async function POST(request: NextRequest) {
       success: true,
       issueUrl: result.issueUrl,
       issueNumber: result.issueNumber,
+      title: finalTitle,
       generatedTitle: titleResult.isGenerated ? finalTitle : undefined,
       alternatives: titleResult.alternatives,
     })
