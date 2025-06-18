@@ -130,7 +130,7 @@ export const InlineEdit: React.FC<InlineEditProps> = ({
         onKeyDown={handleKeyDown}
         className={cn(
           'w-full px-2 py-1 bg-background border rounded focus:outline-none focus:ring-2 focus:ring-primary',
-          multiline && 'resize-none min-h-[100px]',
+          multiline && 'resize-none min-h-screen',
           error && 'border-red-500',
           inputClassName
         )}
